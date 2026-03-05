@@ -1,4 +1,5 @@
 # Proyecto UPM-Arts
+Proyecto a entregar de la asiganatura Fundamentos de la ingeniería del sofware , contenido correspondiente con la primera entrega de dicho proyecto , realizado por el grupo CITIM21-3-UPMArts .
 
 ## Resumen del Proyecto
 UPM-Arts es una aplicación software desarrollada para gestionar el nuevo Centro de Creación Cultural situado en el Campus Sur de la Universidad Politécnica de Madrid (UPM). Este sistema está diseñado para dar soporte a disciplinas artísticas como la música, la pintura y el teatro, permitiendo la participación tanto de la comunidad universitaria como de ciudadanos externos. La plataforma facilita la gestión de distintos tipos de usuarios (participantes, instructores y administradores), la administración de los espacios y sus recursos, la organización de sesiones de trabajo libre y cursos, así como la creación y gestión de asociaciones culturales.
