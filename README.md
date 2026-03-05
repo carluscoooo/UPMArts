@@ -1,72 +1,31 @@
-UPM-Arts — Entrega 1 (CITIM21-3)
+# Proyecto UPM-Arts 🎨🎭🎵
 
-Proyecto realizado para Universidad Politécnica de Madrid
+## Descripción del Proyecto
+[cite_start]La aplicación web UPM-Arts es un sistema encargado por el rectorado de la Universidad Politécnica de Madrid (UPM) para gestionar el nuevo Centro de Creación Cultural en el Campus Sur[cite: 82, 83, 85]. [cite_start]El objetivo principal de esta plataforma es fomentar la formación humanística y artística en disciplinas como la música, la pintura y el teatro, abriendo sus puertas tanto a la comunidad universitaria como a los ciudadanos externos[cite: 82, 84]. 
 
-Descripción breve
+[cite_start]Este proyecto se enmarca dentro de la asignatura de Fundamentos de Ingeniería del Software (FIS) de la E.T.S. de Ingeniería en Sistemas Informáticos (ETSISI)[cite: 67, 68].
 
-Este repositorio contiene la Entrega 1: Requisitos y Análisis del caso de estudio UPM-Arts. El objetivo de la práctica es especificar y documentar los requisitos funcionales y no funcionales, entregar el prototipo de interfaz y el modelado UML de análisis (casos de uso, descripciones extendidas y diagrama de clases).
+## Enlaces de Interés
+* **Plataforma Redmine:** Podéis consultar la gestión de tareas, la especificación de requisitos y nuestra Wiki en el siguiente enlace: [Proyecto CITIM21-3-UPMArts](https://fis.etsisi.upm.es/projects/citim21-3-upmarts).
+* [cite_start]La especificación de requisitos (funcionales y no funcionales) se ha realizado siguiendo el estándar IEEE 830 y se encuentra completamente documentada en la herramienta Redmine[cite: 4, 5].
 
-Enlaces relevantes
+## Equipo de Desarrollo: CITIM21-3-UPMArts
+[cite_start]Este proyecto está siendo desarrollado por un equipo de estudiantes de FIS[cite: 85]. [cite_start]Tal y como indica la normativa, la práctica consta de distintos bloques y cada fase del ciclo de vida del software (requisitos, análisis, diseño, implementación, pruebas) es liderada por un miembro distinto del grupo[cite: 30, 136, 137]:
 
-Redmine (gestión de requisitos y wiki de la práctica): https://fis.etsisi.upm.es/projects/citim21-3-upmarts
+* **FILALI BELHADJ CHAQROUNE, YASSIR**
+* **GOMEZ MORENO, CARLOS**
+* **MARGELINO GONZALES, ERIKA**
+* **PANIS MARAMBA, TRISHALYN**
+* **ZHANG, JIONGHAO**
 
-Repositorio: alojado en GitLab (este README está pensado para pegarse en la raíz del proyecto en GitLab).
+## Estructura del Repositorio y Documentos
+[cite_start]Este repositorio almacena todos los artefactos generados para la **Entrega 1: Requisitos y Análisis**[cite: 1]. [cite_start]La estructura de directorios y su contenido es la siguiente[cite: 37]:
 
-Breve explicación del uso de Redmine y de la práctica
-
-El proyecto en Redmine contiene la gestión de requisitos, el historial de cambios y la wiki con la especificación formal que se pide en la Entrega 1.
-En Redmine encontráis (y debe comprobar el profesor):
-
-La lista de requisitos (funcionales y no funcionales) y su trazabilidad.
-
-Las descripciones extendidas de casos de uso (una por integrante cuando se pida).
-
-Issues/tickets con las tareas asignadas y el historial de cambios.
-
-En este repositorio de GitLab se suben los artefactos entregables: prototipos (PPTX/Figma/HTML), proyecto StarUML (.uml) y exportaciones de diagramas (PNG/PDF), además del PDF recopilatorio que incluye todos los diagramas.
-
-Documentos y artefactos incluidos
-
-Colocar en las carpetas con el esquema exigido por la asignatura:
-
-Entrega 1/Prototipo/ — prototipo de interfaz (PowerPoint, Figma, HTML, etc.).
-
-Entrega 1/Modelado/StarUML/ — archivo .uml del modelado.
-
-Entrega 1/Modelado/Diagramas/ — PNG/JPG de casos de uso, diagrama de clases y descripciones.
-
-Entrega 1/Modelado/UPM_Arts_Modelado_Completo.pdf — recopilatorio en PDF con todos los diagramas.
-
-Documentación/Requisitos.md — versión legible de los requisitos (también reflejados en la wiki de Redmine).
-
-(Asegurad que los nombres de archivo siguen el formato requerido por la asignatura.)
-
-Quiénes formamos el equipo
-
-FILALI BELHADJ CHAQROUNE YASSIR
-
-GOMEZ MORENO CARLOS
-
-MARGELINO GONZALES ERIKA
-
-PANIS MARAMBA TRISHALYN
-
-ZHANG JIONGHAO
-
-Equipo / Grupo: CITIM21-3-UPMArts
-
-Organización y responsabilidades (resumen)
-
-La práctica requiere rotación de roles por fases. En la wiki de Redmine están documentadas las responsabilidades y quién hace cada fase (requisitos, análisis, diseño, implementación, pruebas). En el repositorio se mantendrán ramas por tarea (feature/requisitos, feature/modelado, ...) y commits con mensajes claros.
-
-Instrucciones para el profesor/entregador
-
-Acceder al proyecto de Redmine en el enlace indicado para revisar la especificación en la wiki y los issues.
-
-Revisar en GitLab la carpeta Entrega 1/ con los artefactos: prototipo, proyecto StarUML y PDF recopilatorio.
-
-Si necesitáis acceso directo u otros permisos, contactad con el/la líder asignado en clase (o con cualquiera de los miembros del equipo listados arriba).
-
-Licencia
-
-Indicar la licencia elegida para el repositorio (por ejemplo: MIT, CC BY-SA, u otra acordada por el grupo).
+* [cite_start]**Prototipo/**: Contiene el diseño visual y esquemático de la aplicación[cite: 12, 40]. [cite_start]Concretamente, este prototipo simula el funcionamiento de UPM Arts enfocado en las funcionalidades relativas al registro de usuarios[cite: 11].
+* [cite_start]**Modelado/**: En esta carpeta se agrupan todos los materiales relativos a la fase de análisis del sistema[cite: 22, 42].
+  * [cite_start]**StarUML/**: Contiene el proyecto principal (`UPM_Arts_Analisis.uml`) con el modelado y análisis de los requisitos realizado bajo el estándar UML[cite: 13, 43, 44].
+  * [cite_start]**Diagramas/**: Incluye las imágenes exportadas de todos los diagramas realizados en la fase de análisis[cite: 20, 45].
+    * [cite_start]**Casos_de_Uso/**: Imágenes de los diagramas de casos de uso elaborados para cada subconjunto de funcionalidades[cite: 15, 46].
+    * [cite_start]**Descripciones_Casos_de_Uso/**: Documentos en formato PDF que contienen las descripciones extendidas de los casos de uso, habiendo redactado una descripción detallada cada integrante del equipo[cite: 16, 49].
+    * **Diagrama_Clases/**: Imagen del diagrama de clases de análisis completo del sistema[cite: 19, 52].
+  * **PDF Recopilatorio/**: Documento PDF que recopila y unifica todos los diagramas UML generados en un solo archivo para facilitar su lectura y evaluación[cite: 21, 54].
