@@ -1,93 +1,72 @@
-# CITIM21-3-UPMArts
+UPM-Arts — Entrega 1 (CITIM21-3)
 
+Proyecto realizado para Universidad Politécnica de Madrid
 
+Descripción breve
 
-## Getting started
+Este repositorio contiene la Entrega 1: Requisitos y Análisis del caso de estudio UPM-Arts. El objetivo de la práctica es especificar y documentar los requisitos funcionales y no funcionales, entregar el prototipo de interfaz y el modelado UML de análisis (casos de uso, descripciones extendidas y diagrama de clases).
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Enlaces relevantes
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Redmine (gestión de requisitos y wiki de la práctica): https://fis.etsisi.upm.es/projects/citim21-3-upmarts
 
-## Add your files
+Repositorio: alojado en GitLab (este README está pensado para pegarse en la raíz del proyecto en GitLab).
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+Breve explicación del uso de Redmine y de la práctica
 
-```
-cd existing_repo
-git remote add origin https://gitlab.etsisi.upm.es/bt0056/citim21-3-upmarts.git
-git branch -M main
-git push -uf origin main
-```
+El proyecto en Redmine contiene la gestión de requisitos, el historial de cambios y la wiki con la especificación formal que se pide en la Entrega 1.
+En Redmine encontráis (y debe comprobar el profesor):
 
-## Integrate with your tools
+La lista de requisitos (funcionales y no funcionales) y su trazabilidad.
 
-- [ ] [Set up project integrations](https://gitlab.etsisi.upm.es/bt0056/citim21-3-upmarts/-/settings/integrations)
+Las descripciones extendidas de casos de uso (una por integrante cuando se pida).
 
-## Collaborate with your team
+Issues/tickets con las tareas asignadas y el historial de cambios.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+En este repositorio de GitLab se suben los artefactos entregables: prototipos (PPTX/Figma/HTML), proyecto StarUML (.uml) y exportaciones de diagramas (PNG/PDF), además del PDF recopilatorio que incluye todos los diagramas.
 
-## Test and Deploy
+Documentos y artefactos incluidos
 
-Use the built-in continuous integration in GitLab.
+Colocar en las carpetas con el esquema exigido por la asignatura:
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+Entrega 1/Prototipo/ — prototipo de interfaz (PowerPoint, Figma, HTML, etc.).
 
-***
+Entrega 1/Modelado/StarUML/ — archivo .uml del modelado.
 
-# Editing this README
+Entrega 1/Modelado/Diagramas/ — PNG/JPG de casos de uso, diagrama de clases y descripciones.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Entrega 1/Modelado/UPM_Arts_Modelado_Completo.pdf — recopilatorio en PDF con todos los diagramas.
 
-## Suggestions for a good README
+Documentación/Requisitos.md — versión legible de los requisitos (también reflejados en la wiki de Redmine).
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+(Asegurad que los nombres de archivo siguen el formato requerido por la asignatura.)
 
-## Name
-Choose a self-explaining name for your project.
+Quiénes formamos el equipo
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+FILALI BELHADJ CHAQROUNE YASSIR
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+GOMEZ MORENO CARLOS
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+MARGELINO GONZALES ERIKA
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+PANIS MARAMBA TRISHALYN
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+ZHANG JIONGHAO
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Equipo / Grupo: CITIM21-3-UPMArts
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+Organización y responsabilidades (resumen)
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+La práctica requiere rotación de roles por fases. En la wiki de Redmine están documentadas las responsabilidades y quién hace cada fase (requisitos, análisis, diseño, implementación, pruebas). En el repositorio se mantendrán ramas por tarea (feature/requisitos, feature/modelado, ...) y commits con mensajes claros.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Instrucciones para el profesor/entregador
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Acceder al proyecto de Redmine en el enlace indicado para revisar la especificación en la wiki y los issues.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Revisar en GitLab la carpeta Entrega 1/ con los artefactos: prototipo, proyecto StarUML y PDF recopilatorio.
 
-## License
-For open source projects, say how it is licensed.
+Si necesitáis acceso directo u otros permisos, contactad con el/la líder asignado en clase (o con cualquiera de los miembros del equipo listados arriba).
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Licencia
+
+Indicar la licencia elegida para el repositorio (por ejemplo: MIT, CC BY-SA, u otra acordada por el grupo).
