@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 
 public class AdaptadorLDAP implements IValidadorUPM {
 
+    @Override
     public boolean verificarCredencialesUPM(String correo, String password) {
         Boolean resultadoExterno = llamarExternalLDAP(correo, password);
 
@@ -15,38 +16,103 @@ public class AdaptadorLDAP implements IValidadorUPM {
     }
 
     private Boolean llamarExternalLDAP(String correo, String password) {
+        if (correo == null || password == null) {
+            return null;
+        }
+
+        String correoNormalizado = correo.toLowerCase().trim();
+        if (!correoNormalizado.endsWith("@upm.es") && !correoNormalizado.endsWith("@alumnos.upm.es")) {
+            return false;
+        }
+
+        Boolean resultado = intentarAutenticacion(correo);
+        if (resultado != null) {
+            return resultado;
+        }
+
+        resultado = intentarExternalLDAP(correo, password);
+        if (resultado != null) {
+            return resultado;
+        }
+
+        return null;
+    }
+
+    private Boolean intentarAutenticacion(String correo) {
+        try {
+            Class<?> clase = Class.forName("servidor.Autenticacion");
+
+            try {
+                Method metodoEstatico = clase.getMethod("existeCuentaUPMStatic", String.class);
+                Object resultado = metodoEstatico.invoke(null, correo);
+                if (resultado instanceof Boolean) {
+                    return (Boolean) resultado;
+                }
+            } catch (NoSuchMethodException e) {
+                // Continúa buscando otro método.
+            }
+
+            Object instancia = clase.getDeclaredConstructor().newInstance();
+            try {
+                Method metodoInstancia = clase.getMethod("existeCuentaUPM", String.class);
+                Object resultado = metodoInstancia.invoke(instancia, correo);
+                if (resultado instanceof Boolean) {
+                    return (Boolean) resultado;
+                }
+            } catch (NoSuchMethodException e) {
+                // Continúa si no existe el método.
+            }
+        } catch (Exception e) {
+            // La librería externa no está disponible o hay un error de reflexión.
+        }
+
+        return null;
+    }
+
+    private Boolean intentarExternalLDAP(String correo, String password) {
         String[] nombresClase = {
+                "servidor.ExternalLDAP",
                 "ExternalLDAP",
                 "externals.ExternalLDAP",
                 "upm.externals.ExternalLDAP"
         };
 
         String[] nombresMetodo = {
-                "OperationvalidarUsuarioUPM",
-                "OperacionvalidarUsuarioUPM",
+                "verificarCredencialesUPM",
                 "validarUsuarioUPM",
-                "verificarCredencialesUPM"
+                "OperacionvalidarUsuarioUPM",
+                "OperationvalidarUsuarioUPM"
         };
 
-        for (int i = 0; i < nombresClase.length; i++) {
+        for (String nombreClase : nombresClase) {
             try {
-                Class<?> clase = Class.forName(nombresClase[i]);
-                Object objetoLDAP = clase.getDeclaredConstructor().newInstance();
+                Class<?> clase = Class.forName(nombreClase);
+                Object instancia = clase.getDeclaredConstructor().newInstance();
 
-                for (int j = 0; j < nombresMetodo.length; j++) {
+                for (String nombreMetodo : nombresMetodo) {
                     try {
-                        Method metodo = clase.getMethod(nombresMetodo[j], String.class, String.class);
-                        Object resultado = metodo.invoke(objetoLDAP, correo, password);
+                        Method metodo = clase.getMethod(nombreMetodo, String.class, String.class);
+                        Object resultado = metodo.invoke(instancia, correo, password);
 
                         if (resultado instanceof Boolean) {
                             return (Boolean) resultado;
                         }
                     } catch (NoSuchMethodException e) {
-                        // Se prueba con el siguiente nombre de método.
+                        // Continúa con el siguiente nombre de método.
                     }
                 }
+
+                try {
+                    Method loginMetodo = clase.getMethod("LoginLDAP");
+                    Object resultado = loginMetodo.invoke(instancia);
+                    if (resultado instanceof Boolean) {
+                        return (Boolean) resultado;
+                    }
+                } catch (NoSuchMethodException e) {
+                    // No hay método de login sin argumentos.
+                }
             } catch (Exception e) {
-                // Si la librería no está disponible, se usa la validación local de respaldo.
+                // Si la librería no está disponible o no coincide la clase, se ignora.
             }
         }
 

@@ -18,6 +18,7 @@ public class Instructor extends UsuarioConDNI implements IInstructor {
         this.iban = iban;
     }
 
+    @Override
     public boolean darseDeBaja() {
         return true;
     }
@@ -25,5 +26,28 @@ public class Instructor extends UsuarioConDNI implements IInstructor {
     @Override
     public String getRolSistema() {
         return "INSTRUCTOR";
+    }
+
+    @Override
+    public boolean esInstructor() {
+        return true;
+    }
+
+    @Override
+    public String getCodigoTipoPersistencia() {
+        return PERSISTENCIA_INSTRUCTOR;
+    }
+
+    @Override
+    protected String getPersistenciaAdicional() {
+        StringBuilder extras = new StringBuilder();
+        extras.append(";").append(limpiarParaPersistencia(getDNI()));
+        extras.append(";").append(limpiarParaPersistencia(getIBAN()));
+        return extras.toString();
+    }
+
+    @Override
+    public String getInformacionExtra() {
+        return super.getInformacionExtra() + "\n   IBAN: " + getIBAN();
     }
 }

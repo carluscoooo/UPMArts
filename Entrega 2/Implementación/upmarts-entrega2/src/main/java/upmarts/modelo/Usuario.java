@@ -4,6 +4,12 @@ import upmarts.validacion.ValidadorDatosUsuario;
 
 public abstract class Usuario {
 
+    public static final String PERSISTENCIA_ADMINISTRADOR = "ADMINISTRADOR";
+    public static final String PERSISTENCIA_INSTRUCTOR = "INSTRUCTOR";
+    public static final String PERSISTENCIA_EXTERNO = "EXTERNO";
+    public static final String PERSISTENCIA_ESTUDIANTE_UPM = "ESTUDIANTE_UPM";
+    public static final String PERSISTENCIA_PERSONAL_UPM = "PERSONAL_UPM";
+
     private String nombreUsuario;
     private String nombreCompleto;
     private String correoElectronico;
@@ -61,6 +67,76 @@ public abstract class Usuario {
     }
 
     public abstract String getRolSistema();
+
+    public String getCodigoTipoPersistencia() {
+        return "DESCONOCIDO";
+    }
+
+    public String convertirAlineaPersistencia() {
+        StringBuilder linea = new StringBuilder();
+        linea.append(getCodigoTipoPersistencia()).append(";");
+        linea.append(limpiarParaPersistencia(getNombreUsuario())).append(";");
+        linea.append(limpiarParaPersistencia(getNombreCompleto())).append(";");
+        linea.append(limpiarParaPersistencia(getCorreoElectronico())).append(";");
+        linea.append(limpiarParaPersistencia(getContrasena()));
+        linea.append(getPersistenciaAdicional());
+        return linea.toString();
+    }
+
+    protected String getPersistenciaAdicional() {
+        return "";
+    }
+
+    protected String limpiarParaPersistencia(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        return texto.replace(";", ",").trim();
+    }
+
+    public boolean esAdministrador() {
+        return false;
+    }
+
+    public boolean esInstructor() {
+        return false;
+    }
+
+    public boolean esParticipante() {
+        return false;
+    }
+
+    public boolean puedeDarseDeBaja() {
+        return true;
+    }
+
+    public double obtenerDescuento() {
+        return 0.0;
+    }
+
+    public String getInformacionExtra() {
+        return "";
+    }
+
+    public String getDatoEspecifico() {
+        return "";
+    }
+
+    public String getEtiquetaDatoEspecifico() {
+        return "";
+    }
+
+    public boolean validarDatoEspecifico(String dato) {
+        return true;
+    }
+
+    public void actualizarDatoEspecifico(String dato) {
+        // Implementado en subclases que tienen datos específicos
+    }
+
+    public String getTipoRegistro() {
+        return "DESCONOCIDO";
+    }
 
     @Override
     public String toString() {

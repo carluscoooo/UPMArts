@@ -13,7 +13,6 @@ import upmarts.modelo.Administrador;
 import upmarts.modelo.DisciplinaArtistica;
 import upmarts.modelo.EstudianteUPM;
 import upmarts.modelo.Instructor;
-import upmarts.modelo.Participante;
 import upmarts.modelo.ParticipanteExterno;
 import upmarts.modelo.PersonalUPM;
 import upmarts.modelo.PreferenciaArtistica;
@@ -99,64 +98,7 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
     }
 
     private String convertirUsuarioALinea(Usuario usuario) {
-        StringBuilder linea = new StringBuilder();
-        linea.append(obtenerCodigoTipo(usuario)).append(";");
-        linea.append(limpiar(usuario.getNombreUsuario())).append(";");
-        linea.append(limpiar(usuario.getNombreCompleto())).append(";");
-        linea.append(limpiar(usuario.getCorreoElectronico())).append(";");
-        linea.append(limpiar(usuario.getContrasena()));
-
-        if (usuario instanceof Administrador) {
-            Administrador administrador = (Administrador) usuario;
-            linea.append(";").append(limpiar(administrador.getTelefonoAdministrador()));
-        } else if (usuario instanceof Instructor) {
-            Instructor instructor = (Instructor) usuario;
-            linea.append(";").append(limpiar(instructor.getDNI()));
-            linea.append(";").append(limpiar(instructor.getIBAN()));
-        } else if (usuario instanceof EstudianteUPM) {
-            EstudianteUPM estudiante = (EstudianteUPM) usuario;
-            linea.append(";").append(limpiar(estudiante.getDNI()));
-            linea.append(";").append(limpiar(estudiante.getTarjetaCredito()));
-            linea.append(";").append(limpiar(estudiante.getNumeroMatricula()));
-            linea.append(";").append(convertirPreferenciasATexto(estudiante.getPreferenciasArtisticas()));
-        } else if (usuario instanceof PersonalUPM) {
-            PersonalUPM personal = (PersonalUPM) usuario;
-            linea.append(";").append(limpiar(personal.getDNI()));
-            linea.append(";").append(limpiar(personal.getTarjetaCredito()));
-            linea.append(";").append(personal.getAntiguedad());
-            linea.append(";").append(convertirPreferenciasATexto(personal.getPreferenciasArtisticas()));
-        } else if (usuario instanceof ParticipanteExterno) {
-            ParticipanteExterno externo = (ParticipanteExterno) usuario;
-            linea.append(";").append(limpiar(externo.getDNI()));
-            linea.append(";").append(limpiar(externo.getTarjetaCredito()));
-            linea.append(";").append(convertirPreferenciasATexto(externo.getPreferenciasArtisticas()));
-        }
-
-        return linea.toString();
-    }
-
-    private String obtenerCodigoTipo(Usuario usuario) {
-        if (usuario instanceof Administrador) {
-            return TIPO_ADMINISTRADOR;
-        }
-
-        if (usuario instanceof Instructor) {
-            return TIPO_INSTRUCTOR;
-        }
-
-        if (usuario instanceof EstudianteUPM) {
-            return TIPO_ESTUDIANTE_UPM;
-        }
-
-        if (usuario instanceof PersonalUPM) {
-            return TIPO_PERSONAL_UPM;
-        }
-
-        if (usuario instanceof ParticipanteExterno) {
-            return TIPO_EXTERNO;
-        }
-
-        return "DESCONOCIDO";
+        return usuario.convertirAlineaPersistencia();
     }
 
     private Usuario convertirLineaAUsuario(String linea) {
@@ -199,30 +141,6 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
         return null;
     }
 
-    private String convertirPreferenciasATexto(List<PreferenciaArtistica> preferencias) {
-        if (preferencias == null || preferencias.isEmpty()) {
-            return "";
-        }
-
-        StringBuilder texto = new StringBuilder();
-
-        for (int i = 0; i < preferencias.size(); i++) {
-            PreferenciaArtistica preferencia = preferencias.get(i);
-
-            if (preferencia != null && preferencia.getDisciplina() != null) {
-                if (texto.length() > 0) {
-                    texto.append(",");
-                }
-
-                texto.append(preferencia.getDisciplina().name());
-                texto.append(":");
-                texto.append(preferencia.getNivelExperiencia());
-            }
-        }
-
-        return texto.toString();
-    }
-
     private List<PreferenciaArtistica> convertirTextoAPreferencias(String texto) {
         List<PreferenciaArtistica> preferencias = new ArrayList<PreferenciaArtistica>();
 
@@ -254,14 +172,6 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
         } catch (Exception e) {
             return 0;
         }
-    }
-
-    private String limpiar(String texto) {
-        if (texto == null) {
-            return "";
-        }
-
-        return texto.replace(";", ",").trim();
     }
 
     private void cerrarWriter(BufferedWriter writer) {

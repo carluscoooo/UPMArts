@@ -14,4 +14,14 @@ public class ParticipanteExterno extends Participante implements IParticipanteEx
     public String getRolSistema() {
         return "PARTICIPANTE EXTERNO";
     }
+
+    @Override
+    public String getCodigoTipoPersistencia() {
+        return PERSISTENCIA_EXTERNO;
+    }
+
+    @Override
+    public String getTipoRegistro() {
+        return "EXTERNO";
+    }
 }

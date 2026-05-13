@@ -64,7 +64,11 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         if (registrado) {
             System.out.println("Usuario registrado correctamente.");
         } else {
-            System.out.println("No se ha podido completar el registro. Revise los datos introducidos.");
+            System.out.println("No se ha podido completar el registro.");
+            String mensaje = controladorUsuarios.getUltimoError();
+            if (mensaje != null && !mensaje.trim().isEmpty()) {
+                System.out.println("Motivo: " + mensaje);
+            }
         }
     }
 
@@ -86,11 +90,11 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
     }
 
     private void mostrarMenuSegunUsuario(Usuario usuario) {
-        if (usuario instanceof Administrador) {
+        if (usuario.esAdministrador()) {
             mostrarMenuAdministrador((Administrador) usuario);
-        } else if (usuario instanceof Instructor) {
+        } else if (usuario.esInstructor()) {
             mostrarMenuInstructor((Instructor) usuario);
-        } else if (usuario instanceof Participante) {
+        } else if (usuario.esParticipante()) {
             mostrarMenuParticipante((Participante) usuario);
         } else {
             System.out.println("No hay operaciones disponibles para este usuario.");
@@ -105,7 +109,8 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             System.out.println("--- Menú de administrador ---");
             System.out.println("1. Dar de alta instructor");
             System.out.println("2. Dar de baja usuario");
-            System.out.println("3. Listar usuarios");
+            System.out.println("3. Listar participantes");
+            System.out.println("4. Listar instructores");
             System.out.println("0. Cerrar sesión");
             System.out.print("Seleccione una opción: ");
 
@@ -116,7 +121,9 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             } else if (opcion == 2) {
                 darDeBajaComoAdministrador(administrador);
             } else if (opcion == 3) {
-                listarUsuarios(administrador);
+                listarParticipantes(administrador);
+            } else if (opcion == 4) {
+                listarInstructores(administrador);
             } else if (opcion != 0) {
                 System.out.println("Opción no válida.");
             }
@@ -159,8 +166,9 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             System.out.println("--- Menú de participante ---");
             System.out.println("1. Ver mis datos");
             System.out.println("2. Ver preferencias artísticas");
-            System.out.println("3. Modificar preferencias artísticas");
-            System.out.println("4. Darme de baja");
+            System.out.println("3. Modificar datos");
+            System.out.println("4. Modificar preferencias artísticas");
+            System.out.println("5. Darme de baja");
             System.out.println("0. Cerrar sesión");
             System.out.print("Seleccione una opción: ");
 
@@ -171,8 +179,10 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             } else if (opcion == 2) {
                 mostrarPreferencias(participante);
             } else if (opcion == 3) {
-                modificarPreferencias(participante);
+                modificarDatosParticipante(participante);
             } else if (opcion == 4) {
+                modificarPreferencias(participante);
+            } else if (opcion == 5) {
                 if (controladorUsuarios.darseDeBaja(participante)) {
                     System.out.println("La baja se ha realizado correctamente.");
                     opcion = 0;
@@ -219,19 +229,53 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void listarUsuarios(Administrador administrador) {
-        List<Usuario> usuarios = controladorUsuarios.listarUsuarios(administrador);
+  
+
+    private void listarParticipantes(Administrador administrador) {
+        List<Participante> participantes = controladorUsuarios.listarParticipantes(administrador);
 
         System.out.println();
-        System.out.println("--- Usuarios registrados ---");
+        System.out.println("--- Lista de participantes ---");
 
-        if (usuarios.isEmpty()) {
-            System.out.println("No hay usuarios registrados o no tiene permisos.");
+        if (participantes.isEmpty()) {
+            System.out.println("No hay participantes registrados o no tiene permisos.");
             return;
         }
 
-        for (int i = 0; i < usuarios.size(); i++) {
-            System.out.println((i + 1) + ". " + usuarios.get(i));
+        for (int i = 0; i < participantes.size(); i++) {
+            Participante participante = participantes.get(i);
+            System.out.println((i + 1) + ". " + participante.getRolSistema());
+            System.out.println("   Nick: " + participante.getNombreUsuario());
+            System.out.println("   Nombre completo: " + participante.getNombreCompleto());
+            System.out.println("   Correo: " + participante.getCorreoElectronico());
+            System.out.println(participante.getInformacionExtra());
+
+            double descuento = controladorUsuarios.calcularDescuento(participante) * 100.0;
+            System.out.printf("   Descuento: %.0f%%%n", descuento);
+            System.out.println();
+        }
+    }
+
+    private void listarInstructores(Administrador administrador) {
+        List<Instructor> instructores = controladorUsuarios.listarInstructores(administrador);
+
+        System.out.println();
+        System.out.println("--- Lista de instructores ---");
+
+        if (instructores.isEmpty()) {
+            System.out.println("No hay instructores registrados o no tiene permisos.");
+            return;
+        }
+
+        for (int i = 0; i < instructores.size(); i++) {
+            Instructor instructor = instructores.get(i);
+            System.out.println((i + 1) + ". " + instructor.getRolSistema());
+            System.out.println("   Nick: " + instructor.getNombreUsuario());
+            System.out.println("   Nombre completo: " + instructor.getNombreCompleto());
+            System.out.println("   Correo: " + instructor.getCorreoElectronico());
+            System.out.println("   DNI: " + instructor.getDNI());
+            System.out.println("   IBAN: " + instructor.getIBAN());
+            System.out.println();
         }
     }
 
@@ -242,6 +286,11 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         System.out.println("Nick: " + usuario.getNombreUsuario());
         System.out.println("Nombre completo: " + usuario.getNombreCompleto());
         System.out.println("Correo: " + usuario.getCorreoElectronico());
+
+        String informacionExtra = usuario.getInformacionExtra();
+        if (informacionExtra != null && !informacionExtra.trim().isEmpty()) {
+            System.out.println(informacionExtra);
+        }
     }
 
     private void mostrarPreferencias(Participante participante) {
@@ -267,6 +316,112 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         } else {
             System.out.println("No se han podido actualizar las preferencias.");
         }
+    }
+
+    private void modificarDatosParticipante(Participante participante) {
+        int opcion = -1;
+
+        while (opcion != 0) {
+            System.out.println();
+            System.out.println("--- Modificar datos ---");
+            System.out.println("1. Nombre completo");
+            System.out.println("2. Nick");
+            System.out.println("3. Correo electrónico");
+            System.out.println("4. Contraseña");
+            System.out.println("5. DNI");
+            System.out.println("6. Tarjeta de crédito/débito");
+
+            String etiquetaDatoEspecifico = participante.getEtiquetaDatoEspecifico();
+            if (!etiquetaDatoEspecifico.isEmpty()) {
+                System.out.println("7. " + etiquetaDatoEspecifico);
+            }
+
+            System.out.println("0. Volver");
+            System.out.print("Seleccione una opción: ");
+
+            opcion = leerEntero();
+            String nombre = participante.getNombreCompleto();
+            String nick = participante.getNombreUsuario();
+            String correo = participante.getCorreoElectronico();
+            String dni = participante.getDNI();
+            String tarjeta = participante.getTarjetaCredito();
+            String datoEspecifico = participante.getDatoEspecifico();
+
+            String nuevoValor;
+            boolean actualizado = false;
+
+            switch (opcion) {
+                case 1:
+                    nuevoValor = pedirTexto("Nombre completo (actual: " + nombre + "): ");
+                    if (!textoVacio(nuevoValor)) {
+                        actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
+                                nuevoValor, nick, correo, "", dni, tarjeta, datoEspecifico);
+                    }
+                    break;
+                case 2:
+                    nuevoValor = pedirTexto("Nick (actual: " + nick + "): ");
+                    if (!textoVacio(nuevoValor)) {
+                        actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
+                                nombre, nuevoValor, correo, "", dni, tarjeta, datoEspecifico);
+                    }
+                    break;
+                case 3:
+                    nuevoValor = pedirTexto("Correo electrónico (actual: " + correo + "): ");
+                    if (!textoVacio(nuevoValor)) {
+                        actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
+                                nombre, nick, nuevoValor, "", dni, tarjeta, datoEspecifico);
+                    }
+                    break;
+                case 4:
+                    nuevoValor = pedirTexto("Nueva contraseña (dejar vacío para no cambiar): ");
+                    if (!textoVacio(nuevoValor)) {
+                        actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
+                                nombre, nick, correo, nuevoValor, dni, tarjeta, datoEspecifico);
+                    }
+                    break;
+                case 5:
+                    nuevoValor = pedirTexto("DNI (actual: " + dni + "): ");
+                    if (!textoVacio(nuevoValor)) {
+                        actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
+                                nombre, nick, correo, "", nuevoValor, tarjeta, datoEspecifico);
+                    }
+                    break;
+                case 6:
+                    nuevoValor = pedirTexto("Tarjeta de crédito/débito (actual: " + tarjeta + "): ");
+                    if (!textoVacio(nuevoValor)) {
+                        actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
+                                nombre, nick, correo, "", dni, nuevoValor, datoEspecifico);
+                    }
+                    break;
+                case 7:
+                    if (!etiquetaDatoEspecifico.isEmpty()) {
+                        nuevoValor = pedirTexto(etiquetaDatoEspecifico + " (actual: " + datoEspecifico + "): ");
+                        if (!textoVacio(nuevoValor)) {
+                            actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
+                                    nombre, nick, correo, "", dni, tarjeta, nuevoValor);
+                        }
+                    }
+                    break;
+                case 0:
+                    break;
+                default:
+                    System.out.println("Opción no válida.");
+            }
+
+            if (opcion >= 1 && opcion <= 7) {
+                if (actualizado) {
+                    System.out.println("Dato actualizado correctamente.");
+                } else if (!textoVacio(controladorUsuarios.getUltimoError())) {
+                    System.out.println("No se pudo actualizar el dato: " + controladorUsuarios.getUltimoError());
+                } else if (opcion != 0) {
+                    System.out.println("No se realizó ningún cambio.");
+                }
+            }
+        }
+    }
+
+    private boolean textoVacio(String texto) {
+        return texto == null || texto.trim().isEmpty();
     }
 
     private List<PreferenciaArtistica> pedirPreferenciasArtisticas() {

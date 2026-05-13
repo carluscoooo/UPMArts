@@ -22,4 +22,29 @@ public class Administrador extends Usuario implements IAdministrador {
     public String getRolSistema() {
         return "ADMINISTRADOR";
     }
+
+    @Override
+    public boolean esAdministrador() {
+        return true;
+    }
+
+    @Override
+    public boolean puedeDarseDeBaja() {
+        return false;
+    }
+
+    @Override
+    public String getCodigoTipoPersistencia() {
+        return PERSISTENCIA_ADMINISTRADOR;
+    }
+
+    @Override
+    protected String getPersistenciaAdicional() {
+        return ";" + limpiarParaPersistencia(getTelefonoAdministrador());
+    }
+
+    @Override
+    public String getInformacionExtra() {
+        return "   Teléfono: " + getTelefonoAdministrador();
+    }
 }

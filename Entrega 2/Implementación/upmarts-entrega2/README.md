@@ -1,60 +1,165 @@
 # UPM Arts - Entrega 2
 
-Implementación Java/Maven del subconjunto de funcionalidades de alta y acceso de usuarios.
+Aplicación CLI (Command Line Interface) para gestión de usuarios en el sistema UPM Arts. Implementada en Java con Maven, permite registro, autenticación y gestión de usuarios con diferentes roles.
 
-## Cómo abrirlo en Eclipse
+## Descripción
 
-1. Descomprimir el ZIP.
-2. En Eclipse: File > Import > Maven > Existing Maven Projects.
-3. Seleccionar la carpeta `upmarts-entrega2`.
-4. Ejecutar `upmarts.App` como Java Application.
+UPM Arts es un sistema para gestionar actividades artísticas en la Universidad Politécnica de Madrid. Esta entrega implementa el módulo de usuarios, incluyendo registro público de participantes, autenticación y menús específicos según el rol del usuario.
 
-## Flujo principal
+## Funcionalidades Principales
 
-La aplicación arranca con dos opciones:
+### Registro de Participantes
+- **Registro público**: Cualquier usuario puede registrarse como participante.
+- **Detección automática de tipo**: Basada en el dominio del correo electrónico.
+- **Validación UPM**: Para cuentas universitarias, se verifica contra el sistema LDAP de UPM.
 
-- Registrarse.
-- Iniciar sesión.
+### Inicio de Sesión
+- Autenticación por correo y contraseña.
+- Acceso a menús específicos según el rol.
 
-El registro público solo permite crear participantes. El sistema detecta automáticamente el tipo de participante a partir del correo:
+### Menús por Rol
 
-- `@alumnos.upm.es`: estudiante UPM.
-- `@upm.es`: personal UPM.
-- Cualquier otro dominio válido: participante externo.
+#### Participante (Estudiante UPM, Personal UPM, Externo)
+- Ver datos personales.
+- Ver preferencias artísticas.
+- Modificar preferencias artísticas (música, pintura, teatro).
+- Darse de baja voluntariamente.
 
-Los instructores y administradores no tienen registro público. Son cuentas precreadas o dadas de alta por un administrador.
+#### Instructor
+- Ver datos personales.
+- Darse de baja voluntariamente.
 
-## Usuarios iniciales
+#### Administrador
+- Dar de alta instructores.
+- Dar de baja cualquier usuario.
+- Listar todos los usuarios registrados.
 
-Administrador inicial:
+## Requisitos para Registrar un Usuario
 
+Para registrar un participante, se deben cumplir los siguientes requisitos:
+
+### Datos Obligatorios
+- **Nombre completo**: No puede estar vacío.
+- **Nick**: 
+  - Entre 4 y 12 caracteres.
+  - Solo letras y números (sin espacios ni símbolos).
+  - No debe coincidir con términos conflictivos (lista en `terminos_conflictivos.txt`).
+- **Correo electrónico**:
+  - Formato válido (usuario@dominio).
+  - No debe existir ya registrado.
+- **Contraseña**:
+  - Mínimo 12 caracteres.
+  - Debe incluir al menos una mayúscula, una minúscula y un número.
+- **DNI**: 8 dígitos seguidos de una letra (ej: 12345678A).
+- **Tarjeta de crédito/débito**: Entre 8 y 19 dígitos.
+
+### Datos Específicos por Tipo
+- **Estudiante UPM** (`@alumnos.upm.es`):
+  - Número de matrícula (no vacío).
+  - Validación adicional contra LDAP UPM.
+- **Personal UPM** (`@upm.es`):
+  - Antigüedad en años (número entero positivo).
+  - Validación adicional contra LDAP UPM.
+- **Participante Externo** (otros dominios):
+  - No requiere datos adicionales.
+
+### Preferencias Artísticas
+- Opcionales, pero recomendadas.
+- Disciplinas: Música, Pintura, Teatro.
+- Nivel: 1-10 (0 para no indicar).
+
+### Validaciones Adicionales
+- El nick no debe existir ya.
+- El correo no debe existir ya.
+- Para cuentas UPM: La contraseña debe ser válida en el sistema LDAP.
+
+## Cómo Funciona la Validación UPM
+
+La validación de cuentas UPM se realiza mediante el `AdaptadorLDAP`, que intenta usar la librería externa `externals-5.1.jar` si está disponible.
+
+### Detección de Tipo de Usuario
+El tipo se determina automáticamente por el dominio del correo:
+- `@alumnos.upm.es` → Estudiante UPM
+- `@upm.es` → Personal UPM
+- Otros dominios válidos → Participante Externo
+
+### Validación con Librería Externa
+El adaptador intenta validar primero la **existencia de la cuenta UPM** (sin contraseña), y si eso falla, valida las **credenciales completas** (correo + contraseña).
+
+1. **Intento 1: Existencia de cuenta con `servidor.Autenticacion`**:
+   - Busca la clase `servidor.Autenticacion` en el classpath (de `externals-5.1.jar`).
+   - Llama a `existeCuentaUPMStatic(String correo)` (método estático) o `existeCuentaUPM(String correo)` (método de instancia).
+   - Si devuelve `true`, confirma que la cuenta existe en UPM (solo verifica el correo, no la contraseña).
+   - **Propósito**: Validar que el correo pertenece a un usuario UPM registrado, sin necesidad de contraseña.
+
+2. **Intento 2: Credenciales completas con `servidor.ExternalLDAP`**:
+   - Si el Intento 1 falla (clase no encontrada o método no disponible), busca `servidor.ExternalLDAP`.
+   - Llama a métodos como `verificarCredencialesUPM(String correo, String password)` o `LoginLDAP()`.
+   - Valida tanto la existencia de la cuenta como la contraseña correcta.
+   - **Propósito**: Validación completa de credenciales UPM.
+
+3. **Validación Local (Fallback)**:
+   - Si ninguno de los intentos anteriores funciona (librería no disponible), usa validación local básica:
+     - Correo termina en `@upm.es` o `@alumnos.upm.es`.
+     - Contraseña tiene ≥12 caracteres.
+   - **Propósito**: Permitir desarrollo y testing sin la librería externa.
+
+### Integración en Maven
+En `pom.xml`, se incluye como dependencia system:
+```xml
+<dependency>
+    <groupId>com.upm</groupId>
+    <artifactId>externals</artifactId>
+    <version>5.1</version>
+    <scope>system</scope>
+    <systemPath>${project.basedir}/lib/externals-5.1.jar</systemPath>
+</dependency>
+```
+
+## Usuarios Iniciales
+
+### Administrador
 - Correo: `admin@upm.es`
 - Contraseña: `Admin123456A`
+- Teléfono: `910000000`
+- Rol: Administrador del sistema
 
-Instructor inicial:
-
+### Instructor
 - Correo: `instructor@upm.es`
 - Contraseña: `Instructor123A`
+- DNI: `12345678A`
+- IBAN: `ES7620770024003102575766`
+- Rol: Instructor UPM
 
-## Funcionalidades implementadas
+### Estudiante UPM
+- Correo: `carlos.gomez.moreno@alumnos.upm.es`
+- Contraseña: `Admin123456A`
+- DNI: `20543417R`
+- Matrícula: `bv0379`
+- Preferencias: `MUSICA:7,PINTURA:7,TEATRO:7`
+- Rol: Estudiante UPM
 
-- Registro de participantes externos.
-- Registro de estudiantes UPM.
-- Registro de personal UPM.
-- Validación de correos UPM mediante el adaptador LDAP.
-- Inicio de sesión.
-- Menú específico según el tipo real de usuario.
-- Administrador: alta de instructores, baja de usuarios y listado de usuarios.
-- Instructor: consulta de datos y baja voluntaria.
-- Participante: consulta de datos, gestión de preferencias artísticas y baja voluntaria.
+### Personal UPM
+- Correo: `luis.martin@upm.es`
+- Contraseña: `Instructor123A`
+- DNI: `45678901E`
+- Antigüedad: `5 años`
+- Rol: Personal UPM
+
+### Participante Externo
+- Correo: `pedro@externo.com`
+- Contraseña: `Instructor123A`
+- DNI: `55667788G`
+- Tarjeta: `5555555555`
+- Preferencias: `MUSICA:5,TEATRO:4`
+- Rol: Participante Externo
 
 ## Persistencia
 
-Los usuarios se guardan en `data/usuarios.txt`, una línea por usuario y atributos separados por `;`.
+Los usuarios se almacenan en `data/usuarios.txt` (formato CSV con `;` como separador).
 
-Formato usado:
-
-```txt
+### Formatos por Tipo
+```
 ADMINISTRADOR;nick;nombre;correo;passwordHash;telefono
 INSTRUCTOR;nick;nombre;correo;passwordHash;dni;iban
 EXTERNO;nick;nombre;correo;passwordHash;dni;tarjeta;preferencias
@@ -62,23 +167,68 @@ ESTUDIANTE_UPM;nick;nombre;correo;passwordHash;dni;tarjeta;matricula;preferencia
 PERSONAL_UPM;nick;nombre;correo;passwordHash;dni;tarjeta;antiguedad;preferencias
 ```
 
-Las preferencias se guardan con este formato:
+### Preferencias
+Formato: `DISCIPLINA:nivel,DISCIPLINA:nivel,...`
+Ejemplo: `MUSICA:7,PINTURA:4,TEATRO:2`
 
-```txt
-MUSICA:7,PINTURA:4,TEATRO:2
+## Validación de Términos Conflictivos
+
+Los nicks se validan contra una lista de términos no permitidos:
+- Archivo: `data/terminos_conflictivos.txt` (durante desarrollo).
+- Recurso: `src/main/resources/terminos_conflictivos.txt` (en JAR).
+- Ignora líneas vacías y comentarios (`#`).
+- Comparación case-insensitive.
+
+## Tecnologías
+
+- **Java 1.8**
+- **Maven** para gestión de dependencias y build.
+- **JUnit 4.13.2** para tests.
+- **Librería externa**: `externals-5.1.jar` para validación UPM (opcional).
+
+## Cómo Ejecutar
+
+### En Eclipse
+1. Importar como proyecto Maven existente.
+2. Ejecutar `upmarts.App` como Java Application.
+
+### Con Maven
+```bash
+mvn clean compile exec:java -Dexec.mainClass="upmarts.App"
 ```
 
-## ExternalLDAP
+### Con JAR
+```bash
+java -cp target/upmarts-1.0-SNAPSHOT.jar upmarts.App
+```
 
-El adaptador LDAP está en `upmarts.integracion.AdaptadorLDAP`.
-Si se añade `externals-5.1.jar` al build path, el adaptador intenta localizar `ExternalLDAP` por reflexión.
-Si no está la librería, usa una validación local mínima para poder ejecutar la práctica en Eclipse.
+## Estructura del Proyecto
 
-## Validación de términos conflictivos
+```
+upmarts-entrega2/
+├── src/main/java/upmarts/
+│   ├── App.java                    # Punto de entrada
+│   ├── controlador/                # Lógica de negocio
+│   ├── integracion/                # Adaptadores externos
+│   ├── modelo/                     # Entidades
+│   ├── persistencia/               # Acceso a datos
+│   ├── validacion/                 # Validadores
+│   └── vista/                      # Interfaz CLI
+├── src/main/resources/             # Recursos empaquetados
+├── src/test/java/                  # Tests unitarios
+├── data/                           # Datos persistentes
+├── lib/                            # Librerías externas
+├── pom.xml                         # Configuración Maven
+└── README.md                       # Esta documentación
+```
 
-La validación del nick no usa una lista fija en código. Se lee desde:
+## Notas de Desarrollo
 
-- `data/terminos_conflictivos.txt`, cuando se ejecuta desde el proyecto.
-- `src/main/resources/terminos_conflictivos.txt`, como recurso incluido en el `.jar`.
+- La aplicación es CLI pura (sin GUI).
+- Los errores de registro se muestran con mensajes específicos.
+- La persistencia es en archivo plano (no base de datos).
+- Compatible con Java 8+.
+- El adaptador LDAP es extensible por reflexión para facilitar testing.
 
-Se ignoran líneas vacías y líneas que empiezan por `#`. La comparación se hace en minúsculas y por coincidencia exacta.
+ ## Cuando salga a producción : 
+ - Eiminar el externals-5.1-javadoc.jar (solo es documentación)

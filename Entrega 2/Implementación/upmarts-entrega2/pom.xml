@@ -18,6 +18,13 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.upm</groupId>
+            <artifactId>externals</artifactId>
+            <version>5.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/externals-5.1.jar</systemPath>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
