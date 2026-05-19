@@ -1,15 +1,14 @@
 package upmarts.controlador;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,14 +35,10 @@ public class ControladorUsuariosTest {
         IAccesoUsuarios acceso = new GestorFicheroUsuarios(ficheroTemporal.getAbsolutePath());
         controlador = new ControladorUsuarios(acceso);
 
-        validadorUPM = new IValidadorUPM() {
-            public boolean verificarCredencialesUPM(String correo, String password) {
-                return correo != null
-                        && (correo.endsWith("@upm.es") || correo.endsWith("@alumnos.upm.es"))
-                        && password != null
-                        && password.length() >= 12;
-            }
-        };
+        validadorUPM = (String correo, String password) -> correo != null
+                && (correo.endsWith("@upm.es") || correo.endsWith("@alumnos.upm.es"))
+                && password != null
+                && password.length() >= 12;
     }
 
     @Test
@@ -133,7 +128,7 @@ public class ControladorUsuariosTest {
         registrarParticipante("Ana Externa", "ana01", "ana@gmail.com", "");
         Usuario usuario = controlador.login("ana@gmail.com", "Password1234");
 
-        List<PreferenciaArtistica> nuevas = new ArrayList<PreferenciaArtistica>();
+        List<PreferenciaArtistica> nuevas = new ArrayList<>();
         nuevas.add(new PreferenciaArtistica(DisciplinaArtistica.TEATRO, 9));
 
         boolean resultado = controlador.actualizarPreferencias((Participante) usuario, nuevas);
@@ -201,11 +196,7 @@ public class ControladorUsuariosTest {
 
     @Test
     public void registrarAlumnoUPMSinValidacionUPMDevuelveFalse() {
-        IValidadorUPM validadorFalso = new IValidadorUPM() {
-            public boolean verificarCredencialesUPM(String correo, String password) {
-                return false;
-            }
-        };
+        IValidadorUPM validadorFalso = (String correo, String password) -> false;
 
         assertFalse(controlador.registrarParticipante(
                 "Luis Alumno", "luis01", "luis@alumnos.upm.es", "Password1234",
@@ -271,7 +262,7 @@ public class ControladorUsuariosTest {
                 "ana@gmail.com", Usuario.cifrarPassword("Password1234"), "12345678A",
                 "4111111111111111", preferencias());
 
-        List<PreferenciaArtistica> nuevas = new ArrayList<PreferenciaArtistica>();
+        List<PreferenciaArtistica> nuevas = new ArrayList<>();
         nuevas.add(new PreferenciaArtistica(DisciplinaArtistica.TEATRO, 9));
 
         assertFalse(controlador.actualizarPreferencias(externo, nuevas));
@@ -376,7 +367,7 @@ public class ControladorUsuariosTest {
     }
 
     private List<PreferenciaArtistica> preferencias() {
-        List<PreferenciaArtistica> preferencias = new ArrayList<PreferenciaArtistica>();
+        List<PreferenciaArtistica> preferencias = new ArrayList<>();
         preferencias.add(new PreferenciaArtistica(DisciplinaArtistica.MUSICA, 6));
         return preferencias;
     }

@@ -25,11 +25,11 @@ public abstract class Participante extends UsuarioConDNI {
     }
 
     public List<PreferenciaArtistica> getPreferenciasArtisticas() {
-        return new ArrayList<PreferenciaArtistica>(preferenciasArtisticas);
+        return new ArrayList<>(preferenciasArtisticas);
     }
 
     public void setPreferenciasArtisticas(List<PreferenciaArtistica> preferenciasArtisticas) {
-        this.preferenciasArtisticas = new ArrayList<PreferenciaArtistica>();
+        this.preferenciasArtisticas = new ArrayList<>();
 
         if (preferenciasArtisticas != null) {
             for (PreferenciaArtistica preferencia : preferenciasArtisticas) {

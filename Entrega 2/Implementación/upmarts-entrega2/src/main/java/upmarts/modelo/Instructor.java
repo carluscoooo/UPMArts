@@ -10,10 +10,12 @@ public class Instructor extends UsuarioConDNI implements IInstructor {
         this.iban = iban;
     }
 
+    @Override
     public String getIBAN() {
         return iban;
     }
 
+    @Override
     public void setIBAN(String iban) {
         this.iban = iban;
     }

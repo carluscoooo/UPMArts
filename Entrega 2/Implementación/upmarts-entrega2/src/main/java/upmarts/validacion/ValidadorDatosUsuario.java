@@ -98,7 +98,7 @@ public class ValidadorDatosUsuario {
     }
 
     private static Set<String> cargarTerminosConflictivos() {
-        Set<String> terminos = new HashSet<String>();
+        Set<String> terminos = new HashSet<>();
 
         if (cargarDesdeFicheroExterno(terminos)) {
             return terminos;

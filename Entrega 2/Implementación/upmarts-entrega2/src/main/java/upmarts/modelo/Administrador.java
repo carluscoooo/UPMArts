@@ -10,10 +10,12 @@ public class Administrador extends Usuario implements IAdministrador {
         this.telefonoAdministrador = telefono;
     }
 
+    @Override
     public String getTelefonoAdministrador() {
         return telefonoAdministrador;
     }
 
+    @Override
     public void setTelefonoAdministrador(String telefono) {
         this.telefonoAdministrador = telefono;
     }

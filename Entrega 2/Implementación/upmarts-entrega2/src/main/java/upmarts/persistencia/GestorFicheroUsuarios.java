@@ -54,6 +54,7 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
         }
     }
 
+    @Override
     public void guardarUsuarios(List<Usuario> usuarios) {
         BufferedWriter writer = null;
 
@@ -71,8 +72,9 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
         }
     }
 
+    @Override
     public List<Usuario> leerUsuarios() {
-        List<Usuario> usuarios = new ArrayList<Usuario>();
+        List<Usuario> usuarios = new ArrayList<>();
         BufferedReader reader = null;
 
         try {
@@ -142,7 +144,7 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
     }
 
     private List<PreferenciaArtistica> convertirTextoAPreferencias(String texto) {
-        List<PreferenciaArtistica> preferencias = new ArrayList<PreferenciaArtistica>();
+        List<PreferenciaArtistica> preferencias = new ArrayList<>();
 
         if (texto == null || texto.trim().isEmpty()) {
             return preferencias;
@@ -150,9 +152,8 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
 
         String[] elementos = texto.split(",");
 
-        for (int i = 0; i < elementos.length; i++) {
-            String[] partes = elementos[i].split(":");
-
+        for (String elemento : elementos) {
+            String[] partes = elemento.split(":");
             if (partes.length == 2) {
                 DisciplinaArtistica disciplina = DisciplinaArtistica.desdeTexto(partes[0]);
                 int nivel = convertirEntero(partes[1]);
@@ -169,7 +170,7 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
     private int convertirEntero(String texto) {
         try {
             return Integer.parseInt(texto.trim());
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             return 0;
         }
     }

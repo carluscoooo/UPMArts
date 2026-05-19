@@ -21,7 +21,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
     public static final String TIPO_EXTERNO = "EXTERNO";
     public static final String TIPO_CORREO_INVALIDO = "CORREO_INVALIDO";
 
-    private IAccesoUsuarios persistencia;
+    private final IAccesoUsuarios persistencia;
     private List<Usuario> usuarios;
     private String ultimoError;
 
@@ -30,6 +30,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         this.usuarios = persistencia.leerUsuarios();
     }
 
+    @Override
     public String getUltimoError() {
         return ultimoError;
     }
@@ -38,6 +39,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         this.ultimoError = mensaje;
     }
 
+    @Override
     public String detectarTipoParticipantePorCorreo(String correo) {
         if (!validarCorreo(correo)) {
             return TIPO_CORREO_INVALIDO;
@@ -56,6 +58,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return TIPO_EXTERNO;
     }
 
+    @Override
     public boolean registrarParticipante(String nombre, String nick, String correo, String password,
                                          String dni, String tarjeta, String datoEspecifico,
                                          List<PreferenciaArtistica> preferenciasArtisticas,
@@ -156,6 +159,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return false;
     }
 
+    @Override
     public Usuario login(String correo, String password) {
         refrescarUsuarios();
 
@@ -175,6 +179,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return null;
     }
 
+    @Override
     public boolean registrarInstructorComoAdministrador(Administrador administrador, String nombre, String nick,
                                                         String correo, String password, String dni, String iban) {
         refrescarUsuarios();
@@ -198,6 +203,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return true;
     }
 
+    @Override
     public boolean darDeBajaUsuarioComoAdministrador(Administrador administrador, String correoUsuario) {
         refrescarUsuarios();
 
@@ -220,6 +226,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return true;
     }
 
+    @Override
     public boolean darseDeBaja(Usuario usuario) {
         refrescarUsuarios();
 
@@ -238,6 +245,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return true;
     }
 
+    @Override
     public boolean actualizarPreferencias(Participante participante,
                                           List<PreferenciaArtistica> preferenciasArtisticas) {
         refrescarUsuarios();
@@ -259,6 +267,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return true;
     }
 
+    @Override
     public boolean actualizarDatosParticipante(Participante participante, String nombre, String nick, String correo,
                                                String password, String dni, String tarjeta, String datoEspecifico) {
         refrescarUsuarios();
@@ -395,24 +404,26 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return false;
     }
 
+    @Override
     public List<Usuario> listarUsuarios(Administrador administrador) {
         refrescarUsuarios();
 
         if (administrador == null) {
-            return new ArrayList<Usuario>();
+            return new ArrayList<>();
         }
 
-        return new ArrayList<Usuario>(usuarios);
+        return new ArrayList<>(usuarios);
     }
 
+    @Override
     public List<Instructor> listarInstructores(Administrador administrador) {
         refrescarUsuarios();
 
         if (administrador == null) {
-            return new ArrayList<Instructor>();
+            return new ArrayList<>();
         }
 
-        List<Instructor> instructores = new ArrayList<Instructor>();
+        List<Instructor> instructores = new ArrayList<>();
 
         for (Usuario usuario : usuarios) {
             if (usuario.esInstructor()) {
@@ -423,14 +434,15 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return instructores;
     }
 
+    @Override
     public List<Participante> listarParticipantes(Administrador administrador) {
         refrescarUsuarios();
 
         if (administrador == null) {
-            return new ArrayList<Participante>();
+            return new ArrayList<>();
         }
 
-        List<Participante> participantes = new ArrayList<Participante>();
+        List<Participante> participantes = new ArrayList<>();
 
         for (Usuario usuario : usuarios) {
             if (usuario.esParticipante()) {
@@ -441,6 +453,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return participantes;
     }
 
+    @Override
     public double calcularDescuento(Usuario usuario) {
         if (usuario == null) {
             return 0.0;

@@ -16,9 +16,9 @@ import upmarts.modelo.Usuario;
 
 public class VistaUsuariosCLI implements IVistaUsuariosCLI {
 
-    private IControladorUsuarios controladorUsuarios;
-    private IValidadorUPM validadorUPM;
-    private Scanner scanner;
+    private final IControladorUsuarios controladorUsuarios;
+    private final IValidadorUPM validadorUPM;
+    private final Scanner scanner;
 
     public VistaUsuariosCLI(IControladorUsuarios controladorUsuarios,
                             IValidadorUPM validadorUPM,
@@ -28,6 +28,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         this.scanner = scanner;
     }
 
+    @Override
     public void registrarParticipante() {
         System.out.println();
         System.out.println("--- Registro de participante ---");
@@ -72,6 +73,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
+    @Override
     public void iniciarSesion() {
         System.out.println();
         System.out.println("--- Inicio de sesión ---");
@@ -425,7 +427,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
     }
 
     private List<PreferenciaArtistica> pedirPreferenciasArtisticas() {
-        List<PreferenciaArtistica> preferencias = new ArrayList<PreferenciaArtistica>();
+        List<PreferenciaArtistica> preferencias = new ArrayList<>();
 
         System.out.println();
         System.out.println("--- Preferencias artísticas ---");
@@ -443,12 +445,18 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
     }
 
     private void mostrarTipoDetectado(String tipoRegistro) {
-        if (ControladorUsuarios.TIPO_ALUMNO_UPM.equals(tipoRegistro)) {
-            System.out.println("Tipo detectado: estudiante UPM.");
-        } else if (ControladorUsuarios.TIPO_PERSONAL_UPM.equals(tipoRegistro)) {
-            System.out.println("Tipo detectado: personal UPM.");
-        } else {
+        if (null == tipoRegistro) {
             System.out.println("Tipo detectado: participante externo.");
+        } else switch (tipoRegistro) {
+            case ControladorUsuarios.TIPO_ALUMNO_UPM:
+                System.out.println("Tipo detectado: estudiante UPM.");
+                break;
+            case ControladorUsuarios.TIPO_PERSONAL_UPM:
+                System.out.println("Tipo detectado: personal UPM.");
+                break;
+            default:
+                System.out.println("Tipo detectado: participante externo.");
+                break;
         }
     }
 

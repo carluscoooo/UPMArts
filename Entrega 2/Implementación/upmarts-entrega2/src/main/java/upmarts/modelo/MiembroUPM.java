@@ -13,10 +13,12 @@ public abstract class MiembroUPM extends Participante implements IMiembroUPM {
         this.rolUPM = rolUPM;
     }
 
+    @Override
     public String getRolUPM() {
         return rolUPM;
     }
 
+    @Override
     public void setRolUPM(String rolUPM) {
         this.rolUPM = rolUPM;
     }

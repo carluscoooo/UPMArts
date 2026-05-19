@@ -9,7 +9,7 @@ public class AdaptadorLDAP implements IValidadorUPM {
         Boolean resultadoExterno = llamarExternalLDAP(correo, password);
 
         if (resultadoExterno != null) {
-            return resultadoExterno.booleanValue();
+            return resultadoExterno;
         }
 
         return validarSinLibreriaExterna(correo, password);
