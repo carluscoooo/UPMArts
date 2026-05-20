@@ -3,15 +3,16 @@ package upmarts.controlador;
 import java.util.ArrayList;
 import java.util.List;
 
+import upmarts.integracion.AdaptadorLDAP;
 import upmarts.integracion.IValidadorUPM;
 import upmarts.modelo.Administrador;
 import upmarts.modelo.EstudianteUPM;
 import upmarts.modelo.Instructor;
-import upmarts.modelo.Participante;
 import upmarts.modelo.ParticipanteExterno;
 import upmarts.modelo.PersonalUPM;
 import upmarts.modelo.PreferenciaArtistica;
 import upmarts.modelo.Usuario;
+import upmarts.persistencia.GestorFicheroUsuarios;
 import upmarts.persistencia.IAccesoUsuarios;
 
 public class ControladorUsuarios implements IControladorUsuarios {
@@ -21,13 +22,73 @@ public class ControladorUsuarios implements IControladorUsuarios {
     public static final String TIPO_EXTERNO = "EXTERNO";
     public static final String TIPO_CORREO_INVALIDO = "CORREO_INVALIDO";
 
+    // La ruta del fichero de datos pasa a ser gestionada por el controlador
+    private static final String RUTA_USUARIOS = "data/usuarios.txt";
+
     private final IAccesoUsuarios persistencia;
+    private final IValidadorUPM validadorUPM;
     private List<Usuario> usuarios;
     private String ultimoError;
 
-    public ControladorUsuarios(IAccesoUsuarios persistencia) {
+    // Constructor modificado: ahora se encarga de instanciar la persistencia por sí mismo
+    public ControladorUsuarios() {
+        this(new GestorFicheroUsuarios(RUTA_USUARIOS), new AdaptadorLDAP());
+    }
+
+    ControladorUsuarios(IAccesoUsuarios persistencia, IValidadorUPM validadorUPM) {
         this.persistencia = persistencia;
         this.usuarios = persistencia.leerUsuarios();
+        this.validadorUPM = validadorUPM;
+        crearUsuariosInicialesSiNoExisten();
+    }
+
+    private void crearUsuariosInicialesSiNoExisten() {
+        boolean modificado = false;
+
+        if (!existeAdministradorInicial()) {
+            usuarios.add(new Administrador(
+                    "adminsys",
+                    "Administrador Principal",
+                    "admin@upm.es",
+                    Usuario.cifrarPassword("Admin123456A"),
+                    "910000000"
+            ));
+            modificado = true;
+        }
+
+        if (!existeInstructorInicial()) {
+            usuarios.add(new Instructor(
+                    "profarte1",
+                    "Instructor Inicial",
+                    "instructor@upm.es",
+                    Usuario.cifrarPassword("Instructor123A"),
+                    "12345678A",
+                    "ES7620770024003102575766"
+            ));
+            modificado = true;
+        }
+
+        if (modificado) {
+            persistencia.guardarUsuarios(usuarios);
+        }
+    }
+
+    private boolean existeAdministradorInicial() {
+        for (Usuario usuario : usuarios) {
+            if (usuario.esAdministrador()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean existeInstructorInicial() {
+        for (Usuario usuario : usuarios) {
+            if (usuario.esInstructor()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -60,9 +121,9 @@ public class ControladorUsuarios implements IControladorUsuarios {
 
     @Override
     public boolean registrarParticipante(String nombre, String nick, String correo, String password,
-                                         String dni, String tarjeta, String datoEspecifico,
-                                         List<PreferenciaArtistica> preferenciasArtisticas,
-                                         IValidadorUPM validadorUPM) {
+                                  String dni, String tarjeta, String datoEspecifico,
+                                  List<PreferenciaArtistica> preferenciasArtisticas){
+    
         refrescarUsuarios();
         setUltimoError(null);
 
@@ -123,7 +184,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
                 return false;
             }
 
-            if (!validarUPM(correo, password, validadorUPM)) {
+            if (!validarUPM(correo, password)) {
                 setUltimoError("No se ha podido validar la cuenta UPM. Compruebe correo y contraseña UPM.");
                 return false;
             }
@@ -136,7 +197,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         }
 
         if (TIPO_PERSONAL_UPM.equals(tipo)) {
-            if (!validarUPM(correo, password, validadorUPM)) {
+            if (!validarUPM(correo, password)) {
                 setUltimoError("No se ha podido validar la cuenta UPM. Compruebe correo y contraseña UPM.");
                 return false;
             }
@@ -246,7 +307,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
     }
 
     @Override
-    public boolean actualizarPreferencias(Participante participante,
+    public boolean actualizarPreferencias(ParticipanteExterno participante,
                                           List<PreferenciaArtistica> preferenciasArtisticas) {
         refrescarUsuarios();
 
@@ -260,7 +321,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return false;
         }
 
-        Participante participanteGuardado = (Participante) usuarioGuardado;
+        ParticipanteExterno participanteGuardado = (ParticipanteExterno) usuarioGuardado;
         participanteGuardado.setPreferenciasArtisticas(preferenciasArtisticas);
         persistencia.guardarUsuarios(usuarios);
         participante.setPreferenciasArtisticas(preferenciasArtisticas);
@@ -268,7 +329,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
     }
 
     @Override
-    public boolean actualizarDatosParticipante(Participante participante, String nombre, String nick, String correo,
+    public boolean actualizarDatosParticipante(ParticipanteExterno participante, String nombre, String nick, String correo,
                                                String password, String dni, String tarjeta, String datoEspecifico) {
         refrescarUsuarios();
         setUltimoError(null);
@@ -320,7 +381,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return false;
         }
 
-        Participante participanteGuardado = (Participante) usuarioGuardado;
+        ParticipanteExterno participanteGuardado = (ParticipanteExterno) usuarioGuardado;
         String tipoActual = participanteGuardado.getTipoRegistro();
         String tipoCorreo = detectarTipoParticipantePorCorreo(correo);
 
@@ -435,18 +496,18 @@ public class ControladorUsuarios implements IControladorUsuarios {
     }
 
     @Override
-    public List<Participante> listarParticipantes(Administrador administrador) {
+    public List<ParticipanteExterno> listarParticipantes(Administrador administrador) {
         refrescarUsuarios();
 
         if (administrador == null) {
             return new ArrayList<>();
         }
 
-        List<Participante> participantes = new ArrayList<>();
+        List<ParticipanteExterno> participantes = new ArrayList<>();
 
         for (Usuario usuario : usuarios) {
             if (usuario.esParticipante()) {
-                participantes.add((Participante) usuario);
+                participantes.add((ParticipanteExterno) usuario);
             }
         }
 
@@ -490,12 +551,12 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return true;
     }
 
-    private boolean validarUPM(String correo, String password, IValidadorUPM validadorUPM) {
-        if (validadorUPM == null) {
+    private boolean validarUPM(String correo, String password) {
+        if (this.validadorUPM == null) {
             return false;
         }
 
-        return validadorUPM.verificarCredencialesUPM(correo, password);
+        return this.validadorUPM.verificarCredencialesUPM(correo, password);
     }
 
     private boolean validarCorreo(String correo) {

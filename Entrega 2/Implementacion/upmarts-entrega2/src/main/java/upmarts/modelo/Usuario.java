@@ -131,7 +131,7 @@ public abstract class Usuario {
     }
 
     public void actualizarDatoEspecifico(String dato) {
-        // Implementado en subclases que tienen datos específicos
+        // Implementado en subclases que tienen datos especificos
     }
 
     public String getTipoRegistro() {

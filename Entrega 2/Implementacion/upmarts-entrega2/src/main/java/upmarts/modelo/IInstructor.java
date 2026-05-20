@@ -1,46 +1,46 @@
 package upmarts.modelo;
 
 public interface IInstructor {
-    // Métodos específicos de Instructor
+    // Metodos especificos de Instructor
     String getIBAN();
     void setIBAN(String iban);
-    
-    // Métodos heredados de UsuarioConDNI
+
+    // Metodos heredados de UsuarioConDNI
     String getDNI();
     void setDNI(String dni);
-    
-    // Métodos heredados de Usuario
+
+    // Metodos heredados de Usuario
     String getNombreUsuario();
     void setNombreUsuario(String nombreUsuario);
-    
+
     String getNombreCompleto();
     void setNombreCompleto(String nombreCompleto);
-    
+
     String getCorreoElectronico();
     void setCorreoElectronico(String correoElectronico);
-    
+
     String getContrasena();
     void setContrasena(String password);
-    
-    // Métodos de rol y sistema
+
+    // Metodos de rol y sistema
     String getRolSistema();
     boolean esInstructor();
     boolean esAdministrador();
     boolean esParticipante();
-    
-    // Métodos de gestión
+
+    // Metodos de gestion
     boolean darseDeBaja();
     boolean puedeDarseDeBaja();
     String getCodigoTipoPersistencia();
     String getInformacionExtra();
     double obtenerDescuento();
-    
-    // Métodos de datos especiales
+
+    // Metodos de datos especiales
     String getDatoEspecifico();
     String getEtiquetaDatoEspecifico();
     boolean validarDatoEspecifico(String dato);
     void actualizarDatoEspecifico(String dato);
-    
-    // Método de persistencia
+
+    // Metodo de persistencia
     String getTipoRegistro();
 }

@@ -2,7 +2,7 @@ package upmarts.modelo;
 
 import java.util.List;
 
-public abstract class MiembroUPM extends Participante implements IMiembroUPM {
+public abstract class MiembroUPM extends ParticipanteExterno implements IMiembroUPM {
 
     private String rolUPM;
 

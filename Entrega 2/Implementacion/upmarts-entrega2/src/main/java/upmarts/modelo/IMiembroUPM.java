@@ -3,49 +3,49 @@ package upmarts.modelo;
 import java.util.List;
 
 public interface IMiembroUPM {
-    // Métodos específicos de MiembroUPM
+    // Metodos especificos de MiembroUPM
     String getRolUPM();
     void setRolUPM(String rolUPM);
-    
-    // Métodos heredados de Participante
+
+    // Metodos heredados de ParticipanteExterno
     String getTarjetaCredito();
     void setTarjetaCredito(String tarjeta);
-    
+
     List<PreferenciaArtistica> getPreferenciasArtisticas();
     void setPreferenciasArtisticas(List<PreferenciaArtistica> preferenciasArtisticas);
-    
-    // Métodos heredados de UsuarioConDNI
+
+    // Metodos heredados de UsuarioConDNI
     String getDNI();
     void setDNI(String dni);
-    
-    // Métodos heredados de Usuario
+
+    // Metodos heredados de Usuario
     String getNombreUsuario();
     void setNombreUsuario(String nombreUsuario);
-    
+
     String getNombreCompleto();
     void setNombreCompleto(String nombreCompleto);
-    
+
     String getCorreoElectronico();
     void setCorreoElectronico(String correoElectronico);
-    
+
     String getContrasena();
     void setContrasena(String password);
-    
-    // Métodos de rol y sistema
+
+    // Metodos de rol y sistema
     String getRolSistema();
     boolean esParticipante();
     boolean esAdministrador();
     boolean esInstructor();
-    
-    // Métodos de gestión
+
+    // Metodos de gestion
     boolean darseDeBaja();
     boolean puedeDarseDeBaja();
     String getCodigoTipoPersistencia();
     String getTipoRegistro();
     String getInformacionExtra();
     double obtenerDescuento();
-    
-    // Métodos de datos especiales
+
+    // Metodos de datos especiales
     String getDatoEspecifico();
     String getEtiquetaDatoEspecifico();
     boolean validarDatoEspecifico(String dato);

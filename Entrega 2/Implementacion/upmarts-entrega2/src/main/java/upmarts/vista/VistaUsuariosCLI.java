@@ -6,25 +6,20 @@ import java.util.Scanner;
 
 import upmarts.controlador.ControladorUsuarios;
 import upmarts.controlador.IControladorUsuarios;
-import upmarts.integracion.IValidadorUPM;
 import upmarts.modelo.Administrador;
 import upmarts.modelo.DisciplinaArtistica;
 import upmarts.modelo.Instructor;
-import upmarts.modelo.Participante;
+import upmarts.modelo.ParticipanteExterno;
 import upmarts.modelo.PreferenciaArtistica;
 import upmarts.modelo.Usuario;
 
 public class VistaUsuariosCLI implements IVistaUsuariosCLI {
 
     private final IControladorUsuarios controladorUsuarios;
-    private final IValidadorUPM validadorUPM;
     private final Scanner scanner;
 
-    public VistaUsuariosCLI(IControladorUsuarios controladorUsuarios,
-                            IValidadorUPM validadorUPM,
-                            Scanner scanner) {
+    public VistaUsuariosCLI(IControladorUsuarios controladorUsuarios, Scanner scanner) {
         this.controladorUsuarios = controladorUsuarios;
-        this.validadorUPM = validadorUPM;
         this.scanner = scanner;
     }
 
@@ -60,7 +55,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         List<PreferenciaArtistica> preferencias = pedirPreferenciasArtisticas();
 
         boolean registrado = controladorUsuarios.registrarParticipante(nombre, nick, correo, password,
-                dni, tarjeta, datoEspecifico, preferencias, validadorUPM);
+                dni, tarjeta, datoEspecifico, preferencias) ;
 
         if (registrado) {
             System.out.println("Usuario registrado correctamente.");
@@ -97,7 +92,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         } else if (usuario.esInstructor()) {
             mostrarMenuInstructor((Instructor) usuario);
         } else if (usuario.esParticipante()) {
-            mostrarMenuParticipante((Participante) usuario);
+            mostrarMenuParticipante((ParticipanteExterno) usuario);
         } else {
             System.out.println("No hay operaciones disponibles para este usuario.");
         }
@@ -160,7 +155,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void mostrarMenuParticipante(Participante participante) {
+    private void mostrarMenuParticipante(ParticipanteExterno participante) {
         int opcion = -1;
 
         while (opcion != 0) {
@@ -231,10 +226,8 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-  
-
     private void listarParticipantes(Administrador administrador) {
-        List<Participante> participantes = controladorUsuarios.listarParticipantes(administrador);
+        List<ParticipanteExterno> participantes = controladorUsuarios.listarParticipantes(administrador);
 
         System.out.println();
         System.out.println("--- Lista de participantes ---");
@@ -245,7 +238,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
 
         for (int i = 0; i < participantes.size(); i++) {
-            Participante participante = participantes.get(i);
+            ParticipanteExterno participante = participantes.get(i);
             System.out.println((i + 1) + ". " + participante.getRolSistema());
             System.out.println("   Nick: " + participante.getNombreUsuario());
             System.out.println("   Nombre completo: " + participante.getNombreCompleto());
@@ -295,7 +288,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void mostrarPreferencias(Participante participante) {
+    private void mostrarPreferencias(ParticipanteExterno participante) {
         System.out.println();
         System.out.println("--- Preferencias artísticas ---");
         List<PreferenciaArtistica> preferencias = participante.getPreferenciasArtisticas();
@@ -310,7 +303,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void modificarPreferencias(Participante participante) {
+    private void modificarPreferencias(ParticipanteExterno participante) {
         List<PreferenciaArtistica> preferencias = pedirPreferenciasArtisticas();
 
         if (controladorUsuarios.actualizarPreferencias(participante, preferencias)) {
@@ -320,7 +313,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void modificarDatosParticipante(Participante participante) {
+    private void modificarDatosParticipante(ParticipanteExterno participante) {
         int opcion = -1;
 
         while (opcion != 0) {
