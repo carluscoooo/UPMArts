@@ -27,6 +27,7 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
     @Test
     public void constructorCreaAdministradorEInstructorSiLaPersistenciaEmpiezaVacia() {
         PersistenciaEnMemoria persistencia = new PersistenciaEnMemoria();
+        new ControladorUsuarios(persistencia, new ValidadorUPMContador(true));
 
         assertEquals(2, persistencia.usuarios.size());
         assertTrue(contieneAdministrador(persistencia.usuarios));
@@ -39,6 +40,7 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
         PersistenciaEnMemoria persistencia = new PersistenciaEnMemoria();
         persistencia.usuarios.add(crearAdministradorInicial());
         persistencia.usuarios.add(crearInstructorInicial());
+        new ControladorUsuarios(persistencia, new ValidadorUPMContador(true));
 
         assertEquals(2, persistencia.usuarios.size());
         assertEquals(0, persistencia.vecesGuardado);
@@ -48,6 +50,7 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
     public void constructorAgregaSoloInstructorCuandoYaExisteAdministrador() {
         PersistenciaEnMemoria persistencia = new PersistenciaEnMemoria();
         persistencia.usuarios.add(crearAdministradorInicial());
+        new ControladorUsuarios(persistencia, new ValidadorUPMContador(true));
 
         assertEquals(2, persistencia.usuarios.size());
         assertTrue(contieneAdministrador(persistencia.usuarios));
