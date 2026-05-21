@@ -1,15 +1,15 @@
 package upmarts.integracion;
 
 import servidor.Autenticacion;
-import servidor.ExternalLDAP;
 import servidor.IUPMUserData;
+import servidor.UPMUserData;
 import servidor.UPMUsers;
 
 public class AdaptadorLDAP implements IValidadorUPM {
 
     @Override
     public boolean verificarCredencialesUPM(String correo, String password) {
-        if (correo == null || password == null) {
+        if (correo == null || password == null || password.trim().length() < 12) {
             return false;
         }
 
@@ -26,7 +26,8 @@ public class AdaptadorLDAP implements IValidadorUPM {
                 return false;
             }
 
-            IUPMUserData datosUsuario = ExternalLDAP.LoginLDAP();
+            // ExternalLDAP.LoginLDAP() abre un dialogo modal Swing y bloquea la CLI.
+            IUPMUserData datosUsuario = new UPMUserData(correoNormalizado);
             return datosUsuario != null
                     && datosUsuario.getEmail() != null
                     && correoNormalizado.equals(datosUsuario.getEmail().trim().toLowerCase())
@@ -51,6 +52,6 @@ public class AdaptadorLDAP implements IValidadorUPM {
     }
 
     private boolean validarSinLibreriaExterna(String password) {
-        return password.length() >= 12;
+        return password.trim().length() >= 12;
     }
 }
