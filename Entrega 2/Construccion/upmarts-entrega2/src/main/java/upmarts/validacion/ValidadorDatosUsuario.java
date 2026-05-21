@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ValidadorDatosUsuario {
+public final class ValidadorDatosUsuario {
 
     private static final String NOMBRE_FICHERO_TERMINOS = "terminos_conflictivos.txt";
     private static Set<String> terminosConflictivos;
@@ -91,6 +91,7 @@ public class ValidadorDatosUsuario {
 
     private static Set<String> obtenerTerminosConflictivos() {
         if (terminosConflictivos == null) {
+            // Se cargan una sola vez para no leer el fichero en cada validacion de nick.
             terminosConflictivos = cargarTerminosConflictivos();
         }
 
@@ -100,6 +101,7 @@ public class ValidadorDatosUsuario {
     private static Set<String> cargarTerminosConflictivos() {
         Set<String> terminos = new HashSet<>();
 
+        // El fichero de data permite cambiar la lista sin recompilar la aplicacion.
         if (cargarDesdeFicheroExterno(terminos)) {
             return terminos;
         }

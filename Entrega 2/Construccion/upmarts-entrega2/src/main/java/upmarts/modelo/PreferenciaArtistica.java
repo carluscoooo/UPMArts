@@ -29,9 +29,4 @@ public class PreferenciaArtistica {
 
         this.nivelExperiencia = nivelExperiencia;
     }
-
-    @Override
-    public String toString() {
-        return disciplina + " (nivel " + nivelExperiencia + ")";
-    }
 }

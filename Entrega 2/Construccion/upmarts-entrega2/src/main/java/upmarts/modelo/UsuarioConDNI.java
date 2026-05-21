@@ -17,9 +17,4 @@ public abstract class UsuarioConDNI extends Usuario {
     public void setDNI(String dni) {
         this.dni = dni;
     }
-
-    @Override
-    public String getInformacionExtra() {
-        return "   DNI: " + getDNI();
-    }
 }

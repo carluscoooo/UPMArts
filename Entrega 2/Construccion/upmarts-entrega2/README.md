@@ -82,9 +82,9 @@ Las contrasenas se almacenan cifradas con SHA-256.
 La jerarquia actual relevante es:
 
 - `Usuario`
+- `RolUsuario`: enum identificativo del rol de dominio
 - `UsuarioConDNI`
 - `ParticipanteExterno`
-- `MiembroUPM`
 - `EstudianteUPM` / `PersonalUPM`
 
 ## Reglas de validacion

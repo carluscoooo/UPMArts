@@ -15,8 +15,10 @@ import upmarts.integracion.IValidadorUPM;
 import upmarts.modelo.Administrador;
 import upmarts.modelo.Instructor;
 import upmarts.modelo.ParticipanteExterno;
+import upmarts.modelo.RolUsuario;
 import upmarts.modelo.Usuario;
 import upmarts.persistencia.IAccesoUsuarios;
+import upmarts.validacion.ValidadorDatosUsuario;
 
 public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
@@ -72,7 +74,7 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
         assertTrue(registrado);
         assertEquals(0, validador.llamadas);
         assertEquals(ParticipanteExterno.class, usuarioGuardado.getClass());
-        assertEquals(Usuario.cifrarPassword(PASSWORD_VALIDO), usuarioGuardado.getContrasena());
+        assertEquals(ValidadorDatosUsuario.cifrarPassword(PASSWORD_VALIDO), usuarioGuardado.getContrasena());
         assertNotEquals(PASSWORD_VALIDO, usuarioGuardado.getContrasena());
     }
 
@@ -291,14 +293,14 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
                 "adminsys",
                 "Administrador Principal",
                 "admin@upm.es",
-                Usuario.cifrarPassword("Admin123456A"),
+                ValidadorDatosUsuario.cifrarPassword("Admin123456A"),
                 "910000000"
         );
     }
 
     private static Administrador crearAdministradorDePrueba() {
         return new Administrador("admin", "Admin", "admin@test.com",
-                Usuario.cifrarPassword(PASSWORD_VALIDO), "910000000");
+                ValidadorDatosUsuario.cifrarPassword(PASSWORD_VALIDO), "910000000");
     }
 
     private static Instructor crearInstructorInicial() {
@@ -306,7 +308,7 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
                 "profarte1",
                 "Instructor Inicial",
                 "instructor@upm.es",
-                Usuario.cifrarPassword("Instructor123A"),
+                ValidadorDatosUsuario.cifrarPassword("Instructor123A"),
                 "12345678A",
                 "ES7620770024003102575766"
         );
@@ -317,7 +319,7 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
                 nick,
                 "Participante " + nick,
                 correo,
-                Usuario.cifrarPassword(PASSWORD_VALIDO),
+                ValidadorDatosUsuario.cifrarPassword(PASSWORD_VALIDO),
                 DNI_VALIDO,
                 TARJETA_VALIDA,
                 Collections.emptyList()
@@ -326,7 +328,7 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     private static boolean contieneAdministrador(List<Usuario> usuarios) {
         for (Usuario usuario : usuarios) {
-            if (usuario.esAdministrador()) {
+            if (usuario.getRol() == RolUsuario.ADMINISTRADOR) {
                 return true;
             }
         }
@@ -335,7 +337,7 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     private static boolean contieneInstructor(List<Usuario> usuarios) {
         for (Usuario usuario : usuarios) {
-            if (usuario.esInstructor()) {
+            if (usuario.getRol() == RolUsuario.INSTRUCTOR) {
                 return true;
             }
         }

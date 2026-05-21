@@ -2,6 +2,7 @@ package upmarts.controlador;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import upmarts.integracion.AdaptadorLDAP;
 import upmarts.integracion.IValidadorUPM;
@@ -11,9 +12,11 @@ import upmarts.modelo.Instructor;
 import upmarts.modelo.ParticipanteExterno;
 import upmarts.modelo.PersonalUPM;
 import upmarts.modelo.PreferenciaArtistica;
+import upmarts.modelo.RolUsuario;
 import upmarts.modelo.Usuario;
 import upmarts.persistencia.GestorFicheroUsuarios;
 import upmarts.persistencia.IAccesoUsuarios;
+import upmarts.validacion.ValidadorDatosUsuario;
 
 public class ControladorUsuarios implements IControladorUsuarios {
 
@@ -22,15 +25,35 @@ public class ControladorUsuarios implements IControladorUsuarios {
     public static final String TIPO_EXTERNO = "EXTERNO";
     public static final String TIPO_CORREO_INVALIDO = "CORREO_INVALIDO";
 
-    // La ruta del fichero de datos pasa a ser gestionada por el controlador
     private static final String RUTA_USUARIOS = "data/usuarios.txt";
+    private static final Pattern PATRON_CORREO = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+    private static final Pattern PATRON_DNI = Pattern.compile("[0-9]{8}[A-Za-z]");
+    private static final Pattern PATRON_TARJETA = Pattern.compile("[0-9]{8,19}");
+    private static final Pattern PATRON_IBAN = Pattern.compile("[A-Za-z]{2}[0-9A-Za-z]{13,32}");
+
+    private static final String ERROR_NOMBRE_VACIO = "El nombre completo no puede estar vacío.";
+    private static final String ERROR_NICK_INVALIDO =
+            "Nick inválido. Debe tener entre 4 y 12 caracteres alfanuméricos y no usar términos conflictivos.";
+    private static final String ERROR_PASSWORD_INVALIDA =
+            "Contraseña inválida. Debe tener al menos 12 caracteres, incluir mayúsculas, minúsculas y números.";
+    private static final String ERROR_CORREO_INVALIDO = "Correo electrónico inválido.";
+    private static final String ERROR_CORREO_DUPLICADO = "Ya existe un usuario registrado con ese correo.";
+    private static final String ERROR_NICK_DUPLICADO = "Ya existe un usuario registrado con ese nick.";
+    private static final String ERROR_DNI_INVALIDO = "DNI inválido. Debe tener 8 dígitos seguidos de una letra.";
+    private static final String ERROR_TARJETA_INVALIDA =
+            "Número de tarjeta inválido. Debe contener entre 8 y 19 dígitos.";
+    private static final String ERROR_IBAN_INVALIDO =
+            "IBAN inválido. Debe empezar por dos letras y contener entre 15 y 34 caracteres alfanuméricos.";
+    private static final String ERROR_MATRICULA_VACIA = "El número de matrícula no puede estar vacío.";
+    private static final String ERROR_VALIDACION_UPM =
+            "No se ha podido validar la cuenta UPM. Compruebe correo y contraseña UPM.";
+    private static final String ERROR_ANTIGUEDAD_INVALIDA = "La antigüedad debe ser un número entero válido.";
 
     private final IAccesoUsuarios persistencia;
     private final IValidadorUPM validadorUPM;
     private List<Usuario> usuarios;
     private String ultimoError;
 
-    // Constructor modificado: ahora se encarga de instanciar la persistencia por sí mismo
     public ControladorUsuarios() {
         this(new GestorFicheroUsuarios(RUTA_USUARIOS), new AdaptadorLDAP());
     }
@@ -43,17 +66,17 @@ public class ControladorUsuarios implements IControladorUsuarios {
     }
 
     private void crearUsuariosInicialesSiNoExisten() {
-        boolean modificado = false;
+        boolean hayCambios = false;
 
         if (!existeAdministradorInicial()) {
             usuarios.add(new Administrador(
                     "adminsys",
                     "Administrador Principal",
                     "admin@upm.es",
-                    Usuario.cifrarPassword("Admin123456A"),
+                    ValidadorDatosUsuario.cifrarPassword("Admin123456A"),
                     "910000000"
             ));
-            modificado = true;
+            hayCambios = true;
         }
 
         if (!existeInstructorInicial()) {
@@ -61,21 +84,21 @@ public class ControladorUsuarios implements IControladorUsuarios {
                     "profarte1",
                     "Instructor Inicial",
                     "instructor@upm.es",
-                    Usuario.cifrarPassword("Instructor123A"),
+                    ValidadorDatosUsuario.cifrarPassword("Instructor123A"),
                     "12345678A",
                     "ES7620770024003102575766"
             ));
-            modificado = true;
+            hayCambios = true;
         }
 
-        if (modificado) {
+        if (hayCambios) {
             persistencia.guardarUsuarios(usuarios);
         }
     }
 
     private boolean existeAdministradorInicial() {
         for (Usuario usuario : usuarios) {
-            if (usuario.esAdministrador()) {
+            if (usuario.getRol() == RolUsuario.ADMINISTRADOR) {
                 return true;
             }
         }
@@ -84,7 +107,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
 
     private boolean existeInstructorInicial() {
         for (Usuario usuario : usuarios) {
-            if (usuario.esInstructor()) {
+            if (usuario.getRol() == RolUsuario.INSTRUCTOR) {
                 return true;
             }
         }
@@ -98,6 +121,68 @@ public class ControladorUsuarios implements IControladorUsuarios {
 
     private void setUltimoError(String mensaje) {
         this.ultimoError = mensaje;
+    }
+
+    @Override
+    public String validarNombreRegistro(String nombre) {
+        return validarNombre(nombre);
+    }
+
+    @Override
+    public String validarNickRegistro(String nick) {
+        refrescarUsuarios();
+
+        String error = validarFormatoNick(nick);
+        if (error != null) {
+            return error;
+        }
+
+        return existeNick(nick) ? ERROR_NICK_DUPLICADO : null;
+    }
+
+    @Override
+    public String validarCorreoRegistro(String correo) {
+        refrescarUsuarios();
+
+        String error = validarFormatoCorreo(correo);
+        if (error != null) {
+            return error;
+        }
+
+        return existeCorreo(correo) ? ERROR_CORREO_DUPLICADO : null;
+    }
+
+    @Override
+    public String validarPasswordRegistro(String password) {
+        return validarFormatoPassword(password);
+    }
+
+    @Override
+    public String validarDNIRegistro(String dni) {
+        return validarFormatoDNI(dni);
+    }
+
+    @Override
+    public String validarTarjetaRegistro(String tarjeta) {
+        return validarFormatoTarjeta(tarjeta);
+    }
+
+    @Override
+    public String validarDatoEspecificoRegistro(String tipoRegistro, String datoEspecifico) {
+        if (TIPO_ALUMNO_UPM.equals(tipoRegistro)) {
+            return textoVacio(datoEspecifico) ? ERROR_MATRICULA_VACIA : null;
+        }
+
+        if (TIPO_PERSONAL_UPM.equals(tipoRegistro)) {
+            return convertirEntero(datoEspecifico) < 0 ? ERROR_ANTIGUEDAD_INVALIDA : null;
+        }
+
+        return null;
+    }
+
+    @Override
+    public String validarIBANRegistro(String iban) {
+        return validarFormatoIBAN(iban);
     }
 
     @Override
@@ -127,48 +212,54 @@ public class ControladorUsuarios implements IControladorUsuarios {
         refrescarUsuarios();
         setUltimoError(null);
 
-        if (textoVacio(nombre)) {
-            setUltimoError("El nombre completo no puede estar vacío.");
+        String error = validarNombre(nombre);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
-        if (!Usuario.validarNick(nick)) {
-            setUltimoError("Nick inválido. Debe tener entre 4 y 12 caracteres alfanuméricos y no usar términos conflictivos.");
+        error = validarFormatoNick(nick);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
-        if (!Usuario.validarPassword(password)) {
-            setUltimoError("Contraseña inválida. Debe tener al menos 12 caracteres, incluir mayúsculas, minúsculas y números.");
+        error = validarFormatoPassword(password);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
-        if (!validarCorreo(correo)) {
-            setUltimoError("Correo electrónico inválido.");
+        error = validarFormatoCorreo(correo);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
         if (existeCorreo(correo)) {
-            setUltimoError("Ya existe un usuario registrado con ese correo.");
+            setUltimoError(ERROR_CORREO_DUPLICADO);
             return false;
         }
 
         if (existeNick(nick)) {
-            setUltimoError("Ya existe un usuario registrado con ese nick.");
+            setUltimoError(ERROR_NICK_DUPLICADO);
             return false;
         }
 
-        if (!validarDNI(dni)) {
-            setUltimoError("DNI inválido. Debe tener 8 dígitos seguidos de una letra.");
+        error = validarFormatoDNI(dni);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
-        if (!validarTarjeta(tarjeta)) {
-            setUltimoError("Número de tarjeta inválido. Debe contener entre 8 y 19 dígitos.");
+        error = validarFormatoTarjeta(tarjeta);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
         String tipo = detectarTipoParticipantePorCorreo(correo);
-        String passwordCifrada = Usuario.cifrarPassword(password);
+        String passwordCifrada = ValidadorDatosUsuario.cifrarPassword(password);
 
         if (TIPO_EXTERNO.equals(tipo)) {
             ParticipanteExterno participante = new ParticipanteExterno(nick, nombre, correo,
@@ -179,13 +270,14 @@ public class ControladorUsuarios implements IControladorUsuarios {
         }
 
         if (TIPO_ALUMNO_UPM.equals(tipo)) {
-            if (textoVacio(datoEspecifico)) {
-                setUltimoError("El número de matrícula no puede estar vacío.");
+            error = validarDatoEspecificoRegistro(tipo, datoEspecifico);
+            if (error != null) {
+                setUltimoError(error);
                 return false;
             }
 
             if (!validarUPM(correo, password)) {
-                setUltimoError("No se ha podido validar la cuenta UPM. Compruebe correo y contraseña UPM.");
+                setUltimoError(ERROR_VALIDACION_UPM);
                 return false;
             }
 
@@ -198,16 +290,17 @@ public class ControladorUsuarios implements IControladorUsuarios {
 
         if (TIPO_PERSONAL_UPM.equals(tipo)) {
             if (!validarUPM(correo, password)) {
-                setUltimoError("No se ha podido validar la cuenta UPM. Compruebe correo y contraseña UPM.");
+                setUltimoError(ERROR_VALIDACION_UPM);
+                return false;
+            }
+
+            error = validarDatoEspecificoRegistro(tipo, datoEspecifico);
+            if (error != null) {
+                setUltimoError(error);
                 return false;
             }
 
             int antiguedad = convertirEntero(datoEspecifico);
-
-            if (antiguedad < 0) {
-                setUltimoError("La antigüedad debe ser un número entero válido.");
-                return false;
-            }
 
             PersonalUPM personal = new PersonalUPM(nick, nombre, correo,
                     passwordCifrada, dni, tarjeta, antiguedad, preferenciasArtisticas);
@@ -228,7 +321,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return null;
         }
 
-        String passwordCifrada = Usuario.cifrarPassword(password);
+        String passwordCifrada = ValidadorDatosUsuario.cifrarPassword(password);
 
         for (Usuario usuario : usuarios) {
             if (usuario.getCorreoElectronico().equalsIgnoreCase(correo.trim())
@@ -244,21 +337,33 @@ public class ControladorUsuarios implements IControladorUsuarios {
     public boolean registrarInstructorComoAdministrador(Administrador administrador, String nombre, String nick,
                                                         String correo, String password, String dni, String iban) {
         refrescarUsuarios();
+        setUltimoError(null);
 
         if (administrador == null) {
+            setUltimoError("Administrador inválido.");
             return false;
         }
 
-        if (!validarDatosComunes(nombre, nick, correo, password)) {
+        String error = validarDatosComunes(nombre, nick, correo, password);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
-        if (!validarDNI(dni) || !validarIBAN(iban)) {
+        error = validarFormatoDNI(dni);
+        if (error != null) {
+            setUltimoError(error);
+            return false;
+        }
+
+        error = validarFormatoIBAN(iban);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
         Instructor instructor = new Instructor(nick, nombre, correo,
-                Usuario.cifrarPassword(password), dni, iban);
+                ValidadorDatosUsuario.cifrarPassword(password), dni, iban);
         usuarios.add(instructor);
         persistencia.guardarUsuarios(usuarios);
         return true;
@@ -291,7 +396,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
     public boolean darseDeBaja(Usuario usuario) {
         refrescarUsuarios();
 
-        if (usuario == null || !usuario.puedeDarseDeBaja()) {
+        if (usuario == null || !esBajaPermitida(usuario)) {
             return false;
         }
 
@@ -317,7 +422,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
 
         Usuario usuarioGuardado = buscarUsuarioPorCorreo(participante.getCorreoElectronico());
 
-        if (usuarioGuardado == null || !usuarioGuardado.esParticipante()) {
+        if (!tieneRolParticipante(usuarioGuardado)) {
             return false;
         }
 
@@ -341,23 +446,26 @@ public class ControladorUsuarios implements IControladorUsuarios {
 
         Usuario usuarioGuardado = buscarUsuarioPorCorreo(participante.getCorreoElectronico());
 
-        if (usuarioGuardado == null || !usuarioGuardado.esParticipante()) {
+        if (!tieneRolParticipante(usuarioGuardado)) {
             setUltimoError("No se pudo localizar el participante.");
             return false;
         }
 
-        if (textoVacio(nombre)) {
-            setUltimoError("El nombre completo no puede estar vacío.");
+        String error = validarNombre(nombre);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
-        if (!Usuario.validarNick(nick)) {
-            setUltimoError("Nick inválido. Debe tener entre 4 y 12 caracteres alfanuméricos y no usar términos conflictivos.");
+        error = validarFormatoNick(nick);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
-        if (!validarCorreo(correo)) {
-            setUltimoError("Correo electrónico inválido.");
+        error = validarFormatoCorreo(correo);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
@@ -371,32 +479,36 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return false;
         }
 
-        if (!validarDNI(dni)) {
-            setUltimoError("DNI inválido. Debe tener 8 dígitos y una letra.");
+        error = validarFormatoDNI(dni);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
-        if (!validarTarjeta(tarjeta)) {
-            setUltimoError("Tarjeta inválida. Debe tener entre 8 y 19 dígitos.");
+        error = validarFormatoTarjeta(tarjeta);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
         ParticipanteExterno participanteGuardado = (ParticipanteExterno) usuarioGuardado;
-        String tipoActual = participanteGuardado.getTipoRegistro();
+        String tipoActual = obtenerTipoRegistro(participanteGuardado);
         String tipoCorreo = detectarTipoParticipantePorCorreo(correo);
 
+        // El cambio de correo no debe convertir un alumno UPM en externo, o al contrario.
         if (!tipoActual.equals(tipoCorreo)) {
             setUltimoError("El correo no corresponde con el tipo de participante.");
             return false;
         }
 
-        if (!textoVacio(password) && !Usuario.validarPassword(password)) {
-            setUltimoError("Contraseña inválida. Debe tener al menos 12 caracteres, incluir mayúsculas, minúsculas y números.");
+        error = textoVacio(password) ? null : validarFormatoPassword(password);
+        if (error != null) {
+            setUltimoError(error);
             return false;
         }
 
-        if (!participanteGuardado.getEtiquetaDatoEspecifico().isEmpty()) {
-            if (!participanteGuardado.validarDatoEspecifico(datoEspecifico)) {
+        if (tieneDatoEspecifico(participanteGuardado)) {
+            if (!validarDatoEspecificoParticipante(participanteGuardado, datoEspecifico)) {
                 setUltimoError("El dato específico no es válido.");
                 return false;
             }
@@ -407,12 +519,12 @@ public class ControladorUsuarios implements IControladorUsuarios {
         usuarioGuardado.setCorreoElectronico(correo.trim());
 
         if (!textoVacio(password)) {
-            usuarioGuardado.setContrasena(Usuario.cifrarPassword(password));
+            usuarioGuardado.setContrasena(ValidadorDatosUsuario.cifrarPassword(password));
         }
 
         participanteGuardado.setDNI(dni.trim());
         participanteGuardado.setTarjetaCredito(tarjeta.trim());
-        participanteGuardado.actualizarDatoEspecifico(datoEspecifico);
+        aplicarDatoUPMSiProcede(participanteGuardado, datoEspecifico);
 
         persistencia.guardarUsuarios(usuarios);
 
@@ -423,11 +535,11 @@ public class ControladorUsuarios implements IControladorUsuarios {
         participante.setTarjetaCredito(participanteGuardado.getTarjetaCredito());
 
         if (!textoVacio(password)) {
-            participante.setContrasena(Usuario.cifrarPassword(password));
+            participante.setContrasena(ValidadorDatosUsuario.cifrarPassword(password));
         }
 
-        if (!participante.getEtiquetaDatoEspecifico().isEmpty()) {
-            participante.actualizarDatoEspecifico(datoEspecifico);
+        if (tieneDatoEspecifico(participante)) {
+            aplicarDatoUPMSiProcede(participante, datoEspecifico);
         }
 
         return true;
@@ -466,17 +578,6 @@ public class ControladorUsuarios implements IControladorUsuarios {
     }
 
     @Override
-    public List<Usuario> listarUsuarios(Administrador administrador) {
-        refrescarUsuarios();
-
-        if (administrador == null) {
-            return new ArrayList<>();
-        }
-
-        return new ArrayList<>(usuarios);
-    }
-
-    @Override
     public List<Instructor> listarInstructores(Administrador administrador) {
         refrescarUsuarios();
 
@@ -487,7 +588,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         List<Instructor> instructores = new ArrayList<>();
 
         for (Usuario usuario : usuarios) {
-            if (usuario.esInstructor()) {
+            if (usuario.getRol() == RolUsuario.INSTRUCTOR) {
                 instructores.add((Instructor) usuario);
             }
         }
@@ -506,7 +607,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
         List<ParticipanteExterno> participantes = new ArrayList<>();
 
         for (Usuario usuario : usuarios) {
-            if (usuario.esParticipante()) {
+            if (tieneRolParticipante(usuario)) {
                 participantes.add((ParticipanteExterno) usuario);
             }
         }
@@ -520,35 +621,110 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return 0.0;
         }
 
-        return usuario.obtenerDescuento();
+        return calcularDescuentoUsuario(usuario);
+    }
+
+    private boolean esBajaPermitida(Usuario usuario) {
+        return usuario.getRol() == RolUsuario.INSTRUCTOR || tieneRolParticipante(usuario);
+    }
+
+    private String obtenerTipoRegistro(ParticipanteExterno participante) {
+        switch (participante.getRol()) {
+            case ESTUDIANTE_UPM:
+                return TIPO_ALUMNO_UPM;
+            case PERSONAL_UPM:
+                return TIPO_PERSONAL_UPM;
+            default:
+                return TIPO_EXTERNO;
+        }
+    }
+
+    private boolean tieneDatoEspecifico(ParticipanteExterno participante) {
+        return participante.getRol() == RolUsuario.ESTUDIANTE_UPM
+                || participante.getRol() == RolUsuario.PERSONAL_UPM;
+    }
+
+    private boolean validarDatoEspecificoParticipante(ParticipanteExterno participante, String datoEspecifico) {
+        switch (participante.getRol()) {
+            case ESTUDIANTE_UPM:
+                return validarDatoEspecificoRegistro(TIPO_ALUMNO_UPM, datoEspecifico) == null;
+            case PERSONAL_UPM:
+                return validarDatoEspecificoRegistro(TIPO_PERSONAL_UPM, datoEspecifico) == null;
+            default:
+                return true;
+        }
+    }
+
+    private void aplicarDatoUPMSiProcede(ParticipanteExterno participante, String datoEspecifico) {
+        // Los participantes UPM guardan un dato adicional distinto segun su rol.
+        switch (participante.getRol()) {
+            case ESTUDIANTE_UPM:
+                ((EstudianteUPM) participante).setNumeroMatricula(datoEspecifico.trim());
+                break;
+            case PERSONAL_UPM:
+                ((PersonalUPM) participante).setAntiguedad(convertirEntero(datoEspecifico));
+                break;
+            default:
+                break;
+        }
+    }
+
+    private double calcularDescuentoUsuario(Usuario usuario) {
+        switch (usuario.getRol()) {
+            case ESTUDIANTE_UPM:
+                return 0.25;
+            case PERSONAL_UPM:
+                PersonalUPM personal = (PersonalUPM) usuario;
+                return Math.min(0.25 + personal.getAntiguedad() * 0.03, 0.5);
+            default:
+                return 0.0;
+        }
+    }
+
+    private boolean tieneRolParticipante(Usuario usuario) {
+        if (usuario == null) {
+            return false;
+        }
+
+        return usuario.getRol() == RolUsuario.PARTICIPANTE_EXTERNO
+                || usuario.getRol() == RolUsuario.ESTUDIANTE_UPM
+                || usuario.getRol() == RolUsuario.PERSONAL_UPM;
     }
 
     private void refrescarUsuarios() {
         usuarios = persistencia.leerUsuarios();
     }
 
-    private boolean validarDatosComunes(String nombre, String nick, String correo, String password) {
-        if (textoVacio(nombre)) {
-            return false;
+    private String validarDatosComunes(String nombre, String nick, String correo, String password) {
+        String error = validarNombre(nombre);
+        if (error != null) {
+            return error;
         }
 
-        if (!Usuario.validarNick(nick)) {
-            return false;
+        error = validarFormatoNick(nick);
+        if (error != null) {
+            return error;
         }
 
-        if (!Usuario.validarPassword(password)) {
-            return false;
+        error = validarFormatoPassword(password);
+        if (error != null) {
+            return error;
         }
 
-        if (!validarCorreo(correo)) {
-            return false;
+        error = validarFormatoCorreo(correo);
+        if (error != null) {
+            return error;
         }
 
-        if (existeCorreo(correo) || existeNick(nick)) {
-            return false;
+        if (existeCorreo(correo)) {
+            return ERROR_CORREO_DUPLICADO;
         }
 
-        return true;
+        if (existeNick(nick)) {
+            return ERROR_NICK_DUPLICADO;
+        }
+
+        return null;
     }
 
     private boolean validarUPM(String correo, String password) {
@@ -560,38 +736,51 @@ public class ControladorUsuarios implements IControladorUsuarios {
     }
 
     private boolean validarCorreo(String correo) {
+        return validarFormatoCorreo(correo) == null;
+    }
+
+    private String validarNombre(String nombre) {
+        return textoVacio(nombre) ? ERROR_NOMBRE_VACIO : null;
+    }
+
+    private String validarFormatoNick(String nick) {
+        return ValidadorDatosUsuario.validarNick(nick) ? null : ERROR_NICK_INVALIDO;
+    }
+
+    private String validarFormatoPassword(String password) {
+        return ValidadorDatosUsuario.validarPassword(password) ? null : ERROR_PASSWORD_INVALIDA;
+    }
+
+    private String validarFormatoCorreo(String correo) {
         if (textoVacio(correo)) {
-            return false;
+            return ERROR_CORREO_INVALIDO;
         }
 
-        String correoLimpio = correo.trim();
-        int posicionArroba = correoLimpio.indexOf('@');
-
-        return posicionArroba > 0 && posicionArroba < correoLimpio.length() - 1;
+        return PATRON_CORREO.matcher(correo.trim()).matches() ? null : ERROR_CORREO_INVALIDO;
     }
 
-    private boolean validarDNI(String dni) {
+    private String validarFormatoDNI(String dni) {
         if (textoVacio(dni)) {
-            return false;
+            return ERROR_DNI_INVALIDO;
         }
 
-        return dni.trim().matches("[0-9]{8}[A-Za-z]");
+        return PATRON_DNI.matcher(dni.trim()).matches() ? null : ERROR_DNI_INVALIDO;
     }
 
-    private boolean validarTarjeta(String tarjeta) {
+    private String validarFormatoTarjeta(String tarjeta) {
         if (textoVacio(tarjeta)) {
-            return false;
+            return ERROR_TARJETA_INVALIDA;
         }
 
-        return tarjeta.trim().matches("[0-9]{8,19}");
+        return PATRON_TARJETA.matcher(tarjeta.trim()).matches() ? null : ERROR_TARJETA_INVALIDA;
     }
 
-    private boolean validarIBAN(String iban) {
+    private String validarFormatoIBAN(String iban) {
         if (textoVacio(iban)) {
-            return false;
+            return ERROR_IBAN_INVALIDO;
         }
 
-        return iban.trim().matches("[A-Za-z]{2}[0-9A-Za-z]{13,32}");
+        return PATRON_IBAN.matcher(iban.trim()).matches() ? null : ERROR_IBAN_INVALIDO;
     }
 
     private boolean existeCorreo(String correo) {
@@ -627,9 +816,13 @@ public class ControladorUsuarios implements IControladorUsuarios {
     }
 
     private int convertirEntero(String texto) {
+        if (texto == null) {
+            return -1;
+        }
+
         try {
             return Integer.parseInt(texto.trim());
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             return -1;
         }
     }

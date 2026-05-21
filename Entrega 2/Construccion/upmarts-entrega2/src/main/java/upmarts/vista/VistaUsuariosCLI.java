@@ -8,8 +8,10 @@ import upmarts.controlador.ControladorUsuarios;
 import upmarts.controlador.IControladorUsuarios;
 import upmarts.modelo.Administrador;
 import upmarts.modelo.DisciplinaArtistica;
+import upmarts.modelo.EstudianteUPM;
 import upmarts.modelo.Instructor;
 import upmarts.modelo.ParticipanteExterno;
+import upmarts.modelo.PersonalUPM;
 import upmarts.modelo.PreferenciaArtistica;
 import upmarts.modelo.Usuario;
 
@@ -29,27 +31,30 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         System.out.println("--- Registro de participante ---");
         System.out.println("El tipo de participante se detectará automáticamente por el correo.");
 
-        String nombre = pedirTexto("Nombre completo: ");
-        String nick = pedirTexto("Nick: ");
-        String correo = pedirTexto("Correo electrónico: ");
+        String nombre = pedirTextoValidado("Nombre completo: ",
+                valor -> controladorUsuarios.validarNombreRegistro(valor));
+        String nick = pedirTextoValidado("Nick: ",
+                valor -> controladorUsuarios.validarNickRegistro(valor));
+        String correo = pedirTextoValidado("Correo electrónico: ",
+                valor -> controladorUsuarios.validarCorreoRegistro(valor));
         String tipoRegistro = controladorUsuarios.detectarTipoParticipantePorCorreo(correo);
-
-        if (ControladorUsuarios.TIPO_CORREO_INVALIDO.equals(tipoRegistro)) {
-            System.out.println("El correo introducido no tiene un formato válido.");
-            return;
-        }
 
         mostrarTipoDetectado(tipoRegistro);
 
-        String password = pedirTexto("Contraseña: ");
-        String dni = pedirTexto("DNI: ");
-        String tarjeta = pedirTexto("Tarjeta de crédito/débito: ");
+        String password = pedirTextoValidado("Contraseña: ",
+                valor -> controladorUsuarios.validarPasswordRegistro(valor));
+        String dni = pedirTextoValidado("DNI: ",
+                valor -> controladorUsuarios.validarDNIRegistro(valor));
+        String tarjeta = pedirTextoValidado("Tarjeta de crédito/débito: ",
+                valor -> controladorUsuarios.validarTarjetaRegistro(valor));
         String datoEspecifico = "";
 
         if (ControladorUsuarios.TIPO_ALUMNO_UPM.equals(tipoRegistro)) {
-            datoEspecifico = pedirTexto("Número de matrícula: ");
+            datoEspecifico = pedirTextoValidado("Número de matrícula: ",
+                    valor -> controladorUsuarios.validarDatoEspecificoRegistro(tipoRegistro, valor));
         } else if (ControladorUsuarios.TIPO_PERSONAL_UPM.equals(tipoRegistro)) {
-            datoEspecifico = pedirTexto("Antigüedad en años: ");
+            datoEspecifico = pedirTextoValidado("Antigüedad en años: ",
+                    valor -> controladorUsuarios.validarDatoEspecificoRegistro(tipoRegistro, valor));
         }
 
         List<PreferenciaArtistica> preferencias = pedirPreferenciasArtisticas();
@@ -87,14 +92,21 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
     }
 
     private void mostrarMenuSegunUsuario(Usuario usuario) {
-        if (usuario.esAdministrador()) {
-            mostrarMenuAdministrador((Administrador) usuario);
-        } else if (usuario.esInstructor()) {
-            mostrarMenuInstructor((Instructor) usuario);
-        } else if (usuario.esParticipante()) {
-            mostrarMenuParticipante((ParticipanteExterno) usuario);
-        } else {
-            System.out.println("No hay operaciones disponibles para este usuario.");
+        switch (usuario.getRol()) {
+            case ADMINISTRADOR:
+                mostrarMenuAdministrador((Administrador) usuario);
+                break;
+            case INSTRUCTOR:
+                mostrarMenuInstructor((Instructor) usuario);
+                break;
+            case PARTICIPANTE_EXTERNO:
+            case ESTUDIANTE_UPM:
+            case PERSONAL_UPM:
+                mostrarMenuParticipante((ParticipanteExterno) usuario);
+                break;
+            default:
+                System.out.println("No hay operaciones disponibles para este usuario.");
+                break;
         }
     }
 
@@ -195,12 +207,18 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
     private void registrarInstructor(Administrador administrador) {
         System.out.println();
         System.out.println("--- Alta de instructor ---");
-        String nombre = pedirTexto("Nombre completo: ");
-        String nick = pedirTexto("Nick: ");
-        String correo = pedirTexto("Correo electrónico: ");
-        String password = pedirTexto("Contraseña: ");
-        String dni = pedirTexto("DNI: ");
-        String iban = pedirTexto("IBAN: ");
+        String nombre = pedirTextoValidado("Nombre completo: ",
+                valor -> controladorUsuarios.validarNombreRegistro(valor));
+        String nick = pedirTextoValidado("Nick: ",
+                valor -> controladorUsuarios.validarNickRegistro(valor));
+        String correo = pedirTextoValidado("Correo electrónico: ",
+                valor -> controladorUsuarios.validarCorreoRegistro(valor));
+        String password = pedirTextoValidado("Contraseña: ",
+                valor -> controladorUsuarios.validarPasswordRegistro(valor));
+        String dni = pedirTextoValidado("DNI: ",
+                valor -> controladorUsuarios.validarDNIRegistro(valor));
+        String iban = pedirTextoValidado("IBAN: ",
+                valor -> controladorUsuarios.validarIBANRegistro(valor));
 
         boolean registrado = controladorUsuarios.registrarInstructorComoAdministrador(
                 administrador, nombre, nick, correo, password, dni, iban);
@@ -209,6 +227,10 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             System.out.println("Instructor registrado correctamente.");
         } else {
             System.out.println("No se ha podido registrar el instructor.");
+            String mensaje = controladorUsuarios.getUltimoError();
+            if (mensaje != null && !mensaje.trim().isEmpty()) {
+                System.out.println("Motivo: " + mensaje);
+            }
         }
     }
 
@@ -239,11 +261,11 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
 
         for (int i = 0; i < participantes.size(); i++) {
             ParticipanteExterno participante = participantes.get(i);
-            System.out.println((i + 1) + ". " + participante.getRolSistema());
+            System.out.println((i + 1) + ". " + obtenerRolSistema(participante));
             System.out.println("   Nick: " + participante.getNombreUsuario());
             System.out.println("   Nombre completo: " + participante.getNombreCompleto());
             System.out.println("   Correo: " + participante.getCorreoElectronico());
-            System.out.println(participante.getInformacionExtra());
+            System.out.println(obtenerInformacionExtra(participante));
 
             double descuento = controladorUsuarios.calcularDescuento(participante) * 100.0;
             System.out.printf("   Descuento: %.0f%%%n", descuento);
@@ -264,7 +286,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
 
         for (int i = 0; i < instructores.size(); i++) {
             Instructor instructor = instructores.get(i);
-            System.out.println((i + 1) + ". " + instructor.getRolSistema());
+            System.out.println((i + 1) + ". " + obtenerRolSistema(instructor));
             System.out.println("   Nick: " + instructor.getNombreUsuario());
             System.out.println("   Nombre completo: " + instructor.getNombreCompleto());
             System.out.println("   Correo: " + instructor.getCorreoElectronico());
@@ -277,12 +299,12 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
     private void mostrarDatosUsuario(Usuario usuario) {
         System.out.println();
         System.out.println("--- Mis datos ---");
-        System.out.println("Tipo: " + usuario.getRolSistema());
+        System.out.println("Tipo: " + obtenerRolSistema(usuario));
         System.out.println("Nick: " + usuario.getNombreUsuario());
         System.out.println("Nombre completo: " + usuario.getNombreCompleto());
         System.out.println("Correo: " + usuario.getCorreoElectronico());
 
-        String informacionExtra = usuario.getInformacionExtra();
+        String informacionExtra = obtenerInformacionExtra(usuario);
         if (informacionExtra != null && !informacionExtra.trim().isEmpty()) {
             System.out.println(informacionExtra);
         }
@@ -299,7 +321,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
 
         for (int i = 0; i < preferencias.size(); i++) {
-            System.out.println("- " + preferencias.get(i));
+            System.out.println("- " + formatearPreferencia(preferencias.get(i)));
         }
     }
 
@@ -326,7 +348,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             System.out.println("5. DNI");
             System.out.println("6. Tarjeta de crédito/débito");
 
-            String etiquetaDatoEspecifico = participante.getEtiquetaDatoEspecifico();
+            String etiquetaDatoEspecifico = obtenerEtiquetaDatoEspecifico(participante);
             if (!etiquetaDatoEspecifico.isEmpty()) {
                 System.out.println("7. " + etiquetaDatoEspecifico);
             }
@@ -340,7 +362,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             String correo = participante.getCorreoElectronico();
             String dni = participante.getDNI();
             String tarjeta = participante.getTarjetaCredito();
-            String datoEspecifico = participante.getDatoEspecifico();
+            String datoEspecifico = obtenerDatoEspecifico(participante);
 
             String nuevoValor;
             boolean actualizado = false;
@@ -415,6 +437,77 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
+    private String obtenerRolSistema(Usuario usuario) {
+        switch (usuario.getRol()) {
+            case ADMINISTRADOR:
+                return "ADMINISTRADOR";
+            case INSTRUCTOR:
+                return "INSTRUCTOR";
+            case ESTUDIANTE_UPM:
+                return "ESTUDIANTE UPM";
+            case PERSONAL_UPM:
+                return "PERSONAL UPM";
+            case PARTICIPANTE_EXTERNO:
+                return "PARTICIPANTE EXTERNO";
+            default:
+                return "DESCONOCIDO";
+        }
+    }
+
+    private String obtenerInformacionExtra(Usuario usuario) {
+        switch (usuario.getRol()) {
+            case ADMINISTRADOR:
+                Administrador administrador = (Administrador) usuario;
+                return "   Telefono: " + administrador.getTelefonoAdministrador();
+            case INSTRUCTOR:
+                Instructor instructor = (Instructor) usuario;
+                return "   DNI: " + instructor.getDNI() + "\n   IBAN: " + instructor.getIBAN();
+            case ESTUDIANTE_UPM:
+                EstudianteUPM estudiante = (EstudianteUPM) usuario;
+                return obtenerInformacionParticipante(estudiante)
+                        + "\n   Matricula: " + estudiante.getNumeroMatricula();
+            case PERSONAL_UPM:
+                PersonalUPM personal = (PersonalUPM) usuario;
+                return obtenerInformacionParticipante(personal)
+                        + "\n   Antiguedad: " + personal.getAntiguedad() + " anios";
+            case PARTICIPANTE_EXTERNO:
+                return obtenerInformacionParticipante((ParticipanteExterno) usuario);
+            default:
+                return "";
+        }
+    }
+
+    private String obtenerEtiquetaDatoEspecifico(ParticipanteExterno participante) {
+        switch (participante.getRol()) {
+            case ESTUDIANTE_UPM:
+                return "Numero de matricula";
+            case PERSONAL_UPM:
+                return "Antiguedad en anios";
+            default:
+                return "";
+        }
+    }
+
+    private String obtenerDatoEspecifico(ParticipanteExterno participante) {
+        switch (participante.getRol()) {
+            case ESTUDIANTE_UPM:
+                return ((EstudianteUPM) participante).getNumeroMatricula();
+            case PERSONAL_UPM:
+                return String.valueOf(((PersonalUPM) participante).getAntiguedad());
+            default:
+                return "";
+        }
+    }
+
+    private String formatearPreferencia(PreferenciaArtistica preferencia) {
+        return preferencia.getDisciplina() + " (nivel " + preferencia.getNivelExperiencia() + ")";
+    }
+
+    private String obtenerInformacionParticipante(ParticipanteExterno participante) {
+        return "   DNI: " + participante.getDNI()
+                + "\n   Tarjeta: " + participante.getTarjetaCredito();
+    }
+
     private boolean textoVacio(String texto) {
         return texto == null || texto.trim().isEmpty();
     }
@@ -427,7 +520,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         System.out.println("Indique un nivel de 1 a 10. Escriba 0 si no quiere indicar esa disciplina.");
 
         for (DisciplinaArtistica disciplina : DisciplinaArtistica.values()) {
-            int nivel = pedirEntero("Nivel en " + disciplina.name().toLowerCase() + " (0-10): ");
+            int nivel = pedirNivelPreferencia(disciplina);
 
             if (nivel >= 1 && nivel <= 10) {
                 preferencias.add(new PreferenciaArtistica(disciplina, nivel));
@@ -458,6 +551,31 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         return scanner.nextLine().trim();
     }
 
+    private String pedirTextoValidado(String mensaje, ValidadorEntrada validador) {
+        while (true) {
+            String valor = pedirTexto(mensaje);
+            String error = validador.validar(valor);
+
+            if (textoVacio(error)) {
+                return valor;
+            }
+
+            System.out.println("Dato no válido: " + error);
+        }
+    }
+
+    private int pedirNivelPreferencia(DisciplinaArtistica disciplina) {
+        while (true) {
+            int nivel = pedirEntero("Nivel en " + disciplina.name().toLowerCase() + " (0-10): ");
+
+            if (nivel >= 0 && nivel <= 10) {
+                return nivel;
+            }
+
+            System.out.println("Dato no válido: indique un número entre 0 y 10.");
+        }
+    }
+
     private int pedirEntero(String mensaje) {
         System.out.print(mensaje);
         return leerEntero();
@@ -470,5 +588,9 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         } catch (NumberFormatException e) {
             return -1;
         }
+    }
+
+    private interface ValidadorEntrada {
+        String validar(String valor);
     }
 }

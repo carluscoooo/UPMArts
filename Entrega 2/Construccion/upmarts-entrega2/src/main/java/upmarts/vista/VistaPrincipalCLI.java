@@ -7,9 +7,8 @@ import upmarts.controlador.IControladorUsuarios;
 
 public class VistaPrincipalCLI {
 
-    private Scanner scanner;
-    private IVistaUsuariosCLI vistaUsuariosCLI;
-    private IControladorUsuarios controladorUsuarios;
+    private final Scanner scanner;
+    private final IVistaUsuariosCLI vistaUsuariosCLI;
 
     public VistaPrincipalCLI() {
         this(new Scanner(System.in));
@@ -17,9 +16,7 @@ public class VistaPrincipalCLI {
 
     private VistaPrincipalCLI(Scanner scanner) {
         this.scanner = scanner;
-        
-        // El controlador ahora encapsula por completo su propia persistencia
-        this.controladorUsuarios = new ControladorUsuarios();
+        IControladorUsuarios controladorUsuarios = new ControladorUsuarios();
         this.vistaUsuariosCLI = new VistaUsuariosCLI(controladorUsuarios, scanner);
     }
 

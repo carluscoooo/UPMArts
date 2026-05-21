@@ -16,6 +16,7 @@ import upmarts.modelo.Instructor;
 import upmarts.modelo.ParticipanteExterno;
 import upmarts.modelo.PersonalUPM;
 import upmarts.modelo.PreferenciaArtistica;
+import upmarts.modelo.RolUsuario;
 import upmarts.modelo.Usuario;
 
 public class GestorFicheroUsuarios implements IAccesoUsuarios {
@@ -26,7 +27,7 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
     private static final String TIPO_ESTUDIANTE_UPM = "ESTUDIANTE_UPM";
     private static final String TIPO_PERSONAL_UPM = "PERSONAL_UPM";
 
-    private String rutaFichero;
+    private final String rutaFichero;
 
     public GestorFicheroUsuarios() {
         this("data/usuarios.txt");
@@ -56,29 +57,21 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
 
     @Override
     public void guardarUsuarios(List<Usuario> usuarios) {
-        BufferedWriter writer = null;
-
-        try {
-            writer = new BufferedWriter(new FileWriter(rutaFichero, false));
-
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(rutaFichero, false))) {
             for (Usuario usuario : usuarios) {
                 writer.write(convertirUsuarioALinea(usuario));
                 writer.newLine();
             }
         } catch (IOException e) {
             System.out.println("Error guardando usuarios: " + e.getMessage());
-        } finally {
-            cerrarWriter(writer);
         }
     }
 
     @Override
     public List<Usuario> leerUsuarios() {
         List<Usuario> usuarios = new ArrayList<>();
-        BufferedReader reader = null;
 
-        try {
-            reader = new BufferedReader(new FileReader(rutaFichero));
+        try (BufferedReader reader = new BufferedReader(new FileReader(rutaFichero))) {
             String linea;
 
             while ((linea = reader.readLine()) != null) {
@@ -92,15 +85,106 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
             }
         } catch (IOException e) {
             System.out.println("Error leyendo usuarios: " + e.getMessage());
-        } finally {
-            cerrarReader(reader);
         }
 
         return usuarios;
     }
 
     private String convertirUsuarioALinea(Usuario usuario) {
-        return usuario.convertirAlineaPersistencia();
+        // Formato del fichero: tipo;nick;nombre;correo;password;campos propios del rol.
+        StringBuilder linea = new StringBuilder();
+        linea.append(obtenerCodigoTipo(usuario)).append(";");
+        linea.append(limpiarParaPersistencia(usuario.getNombreUsuario())).append(";");
+        linea.append(limpiarParaPersistencia(usuario.getNombreCompleto())).append(";");
+        linea.append(limpiarParaPersistencia(usuario.getCorreoElectronico())).append(";");
+        linea.append(limpiarParaPersistencia(usuario.getContrasena()));
+
+        switch (usuario.getRol()) {
+            case ADMINISTRADOR:
+                Administrador administrador = (Administrador) usuario;
+                linea.append(";").append(limpiarParaPersistencia(administrador.getTelefonoAdministrador()));
+                break;
+            case INSTRUCTOR:
+                Instructor instructor = (Instructor) usuario;
+                linea.append(";").append(limpiarParaPersistencia(instructor.getDNI()));
+                linea.append(";").append(limpiarParaPersistencia(instructor.getIBAN()));
+                break;
+            case ESTUDIANTE_UPM:
+                EstudianteUPM estudiante = (EstudianteUPM) usuario;
+                linea.append(";").append(limpiarParaPersistencia(estudiante.getDNI()));
+                linea.append(";").append(limpiarParaPersistencia(estudiante.getTarjetaCredito()));
+                linea.append(";").append(limpiarParaPersistencia(estudiante.getNumeroMatricula()));
+                linea.append(";").append(limpiarParaPersistencia(convertirPreferenciasATexto(estudiante)));
+                break;
+            case PERSONAL_UPM:
+                PersonalUPM personal = (PersonalUPM) usuario;
+                linea.append(";").append(limpiarParaPersistencia(personal.getDNI()));
+                linea.append(";").append(limpiarParaPersistencia(personal.getTarjetaCredito()));
+                linea.append(";").append(personal.getAntiguedad());
+                linea.append(";").append(limpiarParaPersistencia(convertirPreferenciasATexto(personal)));
+                break;
+            case PARTICIPANTE_EXTERNO:
+                ParticipanteExterno participante = (ParticipanteExterno) usuario;
+                linea.append(";").append(limpiarParaPersistencia(participante.getDNI()));
+                linea.append(";").append(limpiarParaPersistencia(participante.getTarjetaCredito()));
+                linea.append(";").append(limpiarParaPersistencia(convertirPreferenciasATexto(participante)));
+                break;
+            default:
+                break;
+        }
+
+        return linea.toString();
+    }
+
+    private String obtenerCodigoTipo(Usuario usuario) {
+        RolUsuario rol = usuario.getRol();
+
+        switch (rol) {
+            case ADMINISTRADOR:
+                return TIPO_ADMINISTRADOR;
+            case INSTRUCTOR:
+                return TIPO_INSTRUCTOR;
+            case ESTUDIANTE_UPM:
+                return TIPO_ESTUDIANTE_UPM;
+            case PERSONAL_UPM:
+                return TIPO_PERSONAL_UPM;
+            case PARTICIPANTE_EXTERNO:
+                return TIPO_EXTERNO;
+            default:
+                return "";
+        }
+    }
+
+    private String convertirPreferenciasATexto(ParticipanteExterno participante) {
+        List<PreferenciaArtistica> preferencias = participante.getPreferenciasArtisticas();
+
+        if (preferencias.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder texto = new StringBuilder();
+
+        for (PreferenciaArtistica preferencia : preferencias) {
+            if (preferencia != null && preferencia.getDisciplina() != null) {
+                if (texto.length() > 0) {
+                    texto.append(",");
+                }
+
+                texto.append(preferencia.getDisciplina().name());
+                texto.append(":");
+                texto.append(preferencia.getNivelExperiencia());
+            }
+        }
+
+        return texto.toString();
+    }
+
+    private String limpiarParaPersistencia(String texto) {
+        if (texto == null) {
+            return "";
+        }
+
+        return texto.replace(";", ",").trim();
     }
 
     private Usuario convertirLineaAUsuario(String linea) {
@@ -172,26 +256,6 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
             return Integer.parseInt(texto.trim());
         } catch (NumberFormatException e) {
             return 0;
-        }
-    }
-
-    private void cerrarWriter(BufferedWriter writer) {
-        if (writer != null) {
-            try {
-                writer.close();
-            } catch (IOException e) {
-                System.out.println("Error cerrando el fichero: " + e.getMessage());
-            }
-        }
-    }
-
-    private void cerrarReader(BufferedReader reader) {
-        if (reader != null) {
-            try {
-                reader.close();
-            } catch (IOException e) {
-                System.out.println("Error cerrando el fichero: " + e.getMessage());
-            }
         }
     }
 }

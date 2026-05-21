@@ -12,12 +12,27 @@ public interface IControladorUsuarios {
 
     String detectarTipoParticipantePorCorreo(String correo);
 
-    // Se ha eliminado IValidadorUPM de los parámetros
     boolean registrarParticipante(String nombre, String nick, String correo, String password,
                                   String dni, String tarjeta, String datoEspecifico,
                                   List<PreferenciaArtistica> preferenciasArtisticas);
 
     String getUltimoError();
+
+    String validarNombreRegistro(String nombre);
+
+    String validarNickRegistro(String nick);
+
+    String validarCorreoRegistro(String correo);
+
+    String validarPasswordRegistro(String password);
+
+    String validarDNIRegistro(String dni);
+
+    String validarTarjetaRegistro(String tarjeta);
+
+    String validarDatoEspecificoRegistro(String tipoRegistro, String datoEspecifico);
+
+    String validarIBANRegistro(String iban);
 
     Usuario login(String correo, String password);
 
@@ -39,5 +54,4 @@ public interface IControladorUsuarios {
     boolean actualizarDatosParticipante(ParticipanteExterno participante, String nombre, String nick, String correo,
                                        String password, String dni, String tarjeta, String datoEspecifico);
 
-    List<Usuario> listarUsuarios(Administrador administrador);
 }

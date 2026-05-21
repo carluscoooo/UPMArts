@@ -1,6 +1,6 @@
 package upmarts.modelo;
 
-public class Instructor extends UsuarioConDNI implements IInstructor {
+public class Instructor extends UsuarioConDNI {
 
     private String iban;
 
@@ -10,46 +10,16 @@ public class Instructor extends UsuarioConDNI implements IInstructor {
         this.iban = iban;
     }
 
-    @Override
     public String getIBAN() {
         return iban;
     }
 
-    @Override
     public void setIBAN(String iban) {
         this.iban = iban;
     }
 
     @Override
-    public boolean darseDeBaja() {
-        return true;
-    }
-
-    @Override
-    public String getRolSistema() {
-        return "INSTRUCTOR";
-    }
-
-    @Override
-    public boolean esInstructor() {
-        return true;
-    }
-
-    @Override
-    public String getCodigoTipoPersistencia() {
-        return PERSISTENCIA_INSTRUCTOR;
-    }
-
-    @Override
-    protected String getPersistenciaAdicional() {
-        StringBuilder extras = new StringBuilder();
-        extras.append(";").append(limpiarParaPersistencia(getDNI()));
-        extras.append(";").append(limpiarParaPersistencia(getIBAN()));
-        return extras.toString();
-    }
-
-    @Override
-    public String getInformacionExtra() {
-        return super.getInformacionExtra() + "\n   IBAN: " + getIBAN();
+    public RolUsuario getRol() {
+        return RolUsuario.INSTRUCTOR;
     }
 }

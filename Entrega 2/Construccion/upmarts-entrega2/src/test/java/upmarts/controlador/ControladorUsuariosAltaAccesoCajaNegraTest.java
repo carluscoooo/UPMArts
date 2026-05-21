@@ -20,6 +20,7 @@ import upmarts.modelo.ParticipanteExterno;
 import upmarts.modelo.PersonalUPM;
 import upmarts.modelo.Usuario;
 import upmarts.persistencia.IAccesoUsuarios;
+import upmarts.validacion.ValidadorDatosUsuario;
 
 public class ControladorUsuariosAltaAccesoCajaNegraTest {
 
@@ -83,6 +84,32 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void detectarTipoParticipantePorCorreoDevuelveCorreoInvalidoSiFaltaLaArroba() {
         assertEquals(ControladorUsuarios.TIPO_CORREO_INVALIDO,
                 controlador.detectarTipoParticipantePorCorreo("sin-arroba"));
+    }
+
+    @Test
+    public void validadoresDeRegistroDevuelvenElErrorDelCampo() {
+        assertEquals(ERROR_NOMBRE_VACIO, controlador.validarNombreRegistro("   "));
+        assertEquals(ERROR_NICK_INVALIDO, controlador.validarNickRegistro("abc"));
+        assertEquals(ERROR_PASSWORD_INVALIDA, controlador.validarPasswordRegistro("Password1"));
+        assertEquals(ERROR_CORREO_INVALIDO, controlador.validarCorreoRegistro("sin-arroba"));
+        assertEquals(ERROR_DNI_INVALIDO, controlador.validarDNIRegistro("1234567A"));
+        assertEquals(ERROR_TARJETA_INVALIDA, controlador.validarTarjetaRegistro("1234567"));
+        assertEquals(ERROR_MATRICULA_VACIA,
+                controlador.validarDatoEspecificoRegistro(ControladorUsuarios.TIPO_ALUMNO_UPM, " "));
+        assertEquals(ERROR_ANTIGUEDAD_INVALIDA,
+                controlador.validarDatoEspecificoRegistro(ControladorUsuarios.TIPO_PERSONAL_UPM, "-1"));
+        assertNotNull(controlador.validarIBANRegistro("1234"));
+    }
+
+    @Test
+    public void validadoresDeRegistroDetectanCorreoYNickDuplicados() {
+        assertTrue(controlador.registrarParticipante(
+                "Externo Base", "baseval", "base.validacion@example.com", PASSWORD_VALIDO,
+                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList()));
+
+        assertEquals(ERROR_CORREO_DUPLICADO,
+                controlador.validarCorreoRegistro("base.validacion@example.com"));
+        assertEquals(ERROR_NICK_DUPLICADO, controlador.validarNickRegistro("baseval"));
     }
 
     @Test
@@ -378,7 +405,7 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
 
     private Administrador crearAdministrador() {
         return new Administrador("admin", "Admin", "admin@test.com",
-                Usuario.cifrarPassword(PASSWORD_VALIDO), "910000000");
+                ValidadorDatosUsuario.cifrarPassword(PASSWORD_VALIDO), "910000000");
     }
 
     private static class ValidadorUPMFalso implements IValidadorUPM {
