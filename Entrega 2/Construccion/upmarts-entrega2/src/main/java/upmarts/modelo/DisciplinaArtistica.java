@@ -10,6 +10,7 @@ public enum DisciplinaArtistica {
             return null;
         }
 
+        // La persistencia acepta nombres con o sin tildes para evitar fallos por formato.
         String valor = texto.trim().toUpperCase();
         valor = valor.replace("Á", "A");
         valor = valor.replace("É", "E");

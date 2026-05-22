@@ -15,6 +15,7 @@ import upmarts.modelo.ParticipanteExterno;
 import upmarts.modelo.PersonalUPM;
 import upmarts.modelo.PreferenciaArtistica;
 import upmarts.modelo.Usuario;
+import upmarts.validacion.ValidadorDatosUsuario;
 
 public class VistaUsuariosCLI implements IVistaUsuariosCLI {
 
@@ -76,7 +77,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         Usuario usuario = controladorUsuarios.login(correo, password);
 
         if (usuario == null) {
-            if (!textoVacio(controladorUsuarios.getUltimoError())) {
+            if (!ValidadorDatosUsuario.textoVacio(controladorUsuarios.getUltimoError())) {
                 System.out.println("No se pudo iniciar sesión: " + controladorUsuarios.getUltimoError());
             } else {
                 System.out.println("Correo o contraseña incorrectos.");
@@ -312,7 +313,9 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
 
         for (int i = 0; i < preferencias.size(); i++) {
-            System.out.println("- " + formatearPreferencia(preferencias.get(i)));
+            PreferenciaArtistica preferencia = preferencias.get(i);
+            System.out.println("- " + preferencia.getDisciplina()
+                    + " (nivel " + preferencia.getNivelExperiencia() + ")");
         }
     }
 
@@ -361,42 +364,42 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             switch (opcion) {
                 case 1:
                     nuevoValor = pedirTexto("Nombre completo (actual: " + nombre + "): ");
-                    if (!textoVacio(nuevoValor)) {
+                    if (!ValidadorDatosUsuario.textoVacio(nuevoValor)) {
                         actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
                                 nuevoValor, nick, correo, "", dni, tarjeta, datoEspecifico);
                     }
                     break;
                 case 2:
                     nuevoValor = pedirTexto("Nick (actual: " + nick + "): ");
-                    if (!textoVacio(nuevoValor)) {
+                    if (!ValidadorDatosUsuario.textoVacio(nuevoValor)) {
                         actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
                                 nombre, nuevoValor, correo, "", dni, tarjeta, datoEspecifico);
                     }
                     break;
                 case 3:
                     nuevoValor = pedirTexto("Correo electrónico (actual: " + correo + "): ");
-                    if (!textoVacio(nuevoValor)) {
+                    if (!ValidadorDatosUsuario.textoVacio(nuevoValor)) {
                         actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
                                 nombre, nick, nuevoValor, "", dni, tarjeta, datoEspecifico);
                     }
                     break;
                 case 4:
                     nuevoValor = pedirTexto("Nueva contraseña (dejar vacío para no cambiar): ");
-                    if (!textoVacio(nuevoValor)) {
+                    if (!ValidadorDatosUsuario.textoVacio(nuevoValor)) {
                         actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
                                 nombre, nick, correo, nuevoValor, dni, tarjeta, datoEspecifico);
                     }
                     break;
                 case 5:
                     nuevoValor = pedirTexto("DNI (actual: " + dni + "): ");
-                    if (!textoVacio(nuevoValor)) {
+                    if (!ValidadorDatosUsuario.textoVacio(nuevoValor)) {
                         actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
                                 nombre, nick, correo, "", nuevoValor, tarjeta, datoEspecifico);
                     }
                     break;
                 case 6:
                     nuevoValor = pedirTexto("Tarjeta de crédito/débito (actual: " + tarjeta + "): ");
-                    if (!textoVacio(nuevoValor)) {
+                    if (!ValidadorDatosUsuario.textoVacio(nuevoValor)) {
                         actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
                                 nombre, nick, correo, "", dni, nuevoValor, datoEspecifico);
                     }
@@ -404,7 +407,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
                 case 7:
                     if (!etiquetaDatoEspecifico.isEmpty()) {
                         nuevoValor = pedirTexto(etiquetaDatoEspecifico + " (actual: " + datoEspecifico + "): ");
-                        if (!textoVacio(nuevoValor)) {
+                        if (!ValidadorDatosUsuario.textoVacio(nuevoValor)) {
                             actualizado = controladorUsuarios.actualizarDatosParticipante(participante,
                                     nombre, nick, correo, "", dni, tarjeta, nuevoValor);
                         }
@@ -419,7 +422,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             if (opcion >= 1 && opcion <= 7) {
                 if (actualizado) {
                     System.out.println("Dato actualizado correctamente.");
-                } else if (!textoVacio(controladorUsuarios.getUltimoError())) {
+                } else if (!ValidadorDatosUsuario.textoVacio(controladorUsuarios.getUltimoError())) {
                     System.out.println("No se pudo actualizar el dato: " + controladorUsuarios.getUltimoError());
                 } else if (opcion != 0) {
                     System.out.println("No se realizó ningún cambio.");
@@ -490,17 +493,9 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private String formatearPreferencia(PreferenciaArtistica preferencia) {
-        return preferencia.getDisciplina() + " (nivel " + preferencia.getNivelExperiencia() + ")";
-    }
-
     private String obtenerInformacionParticipante(ParticipanteExterno participante) {
         return "   DNI: " + participante.getDNI()
                 + "\n   Tarjeta: " + participante.getTarjetaCredito();
-    }
-
-    private boolean textoVacio(String texto) {
-        return texto == null || texto.trim().isEmpty();
     }
 
     private List<PreferenciaArtistica> pedirPreferenciasArtisticas() {
@@ -552,7 +547,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             String valor = pedirTexto("Nombre completo: ");
             String error = controladorUsuarios.validarNombreRegistro(valor);
 
-            if (textoVacio(error)) {
+            if (ValidadorDatosUsuario.textoVacio(error)) {
                 return valor;
             }
 
@@ -565,7 +560,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             String valor = pedirTexto("Nick: ");
             String error = controladorUsuarios.validarNickRegistro(valor);
 
-            if (textoVacio(error)) {
+            if (ValidadorDatosUsuario.textoVacio(error)) {
                 return valor;
             }
 
@@ -578,7 +573,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             String valor = pedirTexto("Correo electrónico: ");
             String error = controladorUsuarios.validarCorreoRegistro(valor);
 
-            if (textoVacio(error)) {
+            if (ValidadorDatosUsuario.textoVacio(error)) {
                 return valor;
             }
 
@@ -591,7 +586,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             String valor = pedirTexto("Contraseña: ");
             String error = controladorUsuarios.validarPasswordRegistro(valor);
 
-            if (textoVacio(error)) {
+            if (ValidadorDatosUsuario.textoVacio(error)) {
                 return valor;
             }
 
@@ -604,7 +599,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             String valor = pedirTexto("DNI: ");
             String error = controladorUsuarios.validarDNIRegistro(valor);
 
-            if (textoVacio(error)) {
+            if (ValidadorDatosUsuario.textoVacio(error)) {
                 return valor;
             }
 
@@ -617,7 +612,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             String valor = pedirTexto("Tarjeta de crédito/débito: ");
             String error = controladorUsuarios.validarTarjetaRegistro(valor);
 
-            if (textoVacio(error)) {
+            if (ValidadorDatosUsuario.textoVacio(error)) {
                 return valor;
             }
 
@@ -630,7 +625,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             String valor = pedirTexto("IBAN: ");
             String error = controladorUsuarios.validarIBANRegistro(valor);
 
-            if (textoVacio(error)) {
+            if (ValidadorDatosUsuario.textoVacio(error)) {
                 return valor;
             }
 
@@ -643,7 +638,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             String valor = pedirTexto(mensaje);
             String error = controladorUsuarios.validarDatoEspecificoRegistro(tipoRegistro, valor);
 
-            if (textoVacio(error)) {
+            if (ValidadorDatosUsuario.textoVacio(error)) {
                 return valor;
             }
 
@@ -656,7 +651,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             String texto = pedirTexto("Nivel en " + disciplina.name().toLowerCase() + " (0-10): ");
             String error = controladorUsuarios.validarNivelPreferencia(texto);
 
-            if (textoVacio(error)) {
+            if (ValidadorDatosUsuario.textoVacio(error)) {
                 return Integer.parseInt(texto.trim());
             }
 

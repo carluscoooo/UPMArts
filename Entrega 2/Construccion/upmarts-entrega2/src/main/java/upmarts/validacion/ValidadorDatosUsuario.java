@@ -68,10 +68,6 @@ public final class ValidadorDatosUsuario {
         return textoVacio(nombre) ? ERROR_NOMBRE_OBLIGATORIO : null;
     }
 
-    public static boolean validarNick(String nick) {
-        return validarNickConMensaje(nick) == null;
-    }
-
     public static String validarNickConMensaje(String nick) {
         if (textoVacio(nick)) {
             return ERROR_NICK_OBLIGATORIO;
@@ -96,10 +92,6 @@ public final class ValidadorDatosUsuario {
         }
 
         return obtenerTerminosConflictivos().contains(nick.trim().toLowerCase());
-    }
-
-    public static boolean validarPassword(String password) {
-        return validarPasswordConMensaje(password) == null;
     }
 
     public static String validarPasswordConMensaje(String password) {
@@ -222,6 +214,7 @@ public final class ValidadorDatosUsuario {
         }
 
         try {
+            // Se guarda un hash para no persistir la contrasena en claro.
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
             StringBuilder resultado = new StringBuilder();

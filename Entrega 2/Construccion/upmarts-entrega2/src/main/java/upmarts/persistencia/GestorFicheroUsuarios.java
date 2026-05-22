@@ -94,6 +94,7 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
         try {
             return convertirLineaAUsuario(linea);
         } catch (RuntimeException e) {
+            // Si una linea esta corrupta se omite para poder cargar el resto del fichero.
             return null;
         }
     }
@@ -119,35 +120,29 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
                 break;
             case ESTUDIANTE_UPM:
                 EstudianteUPM estudiante = (EstudianteUPM) usuario;
-                anadirDatosComunesParticipante(linea, estudiante);
+                linea.append(";").append(limpiarParaPersistencia(estudiante.getDNI()));
+                linea.append(";").append(limpiarParaPersistencia(estudiante.getTarjetaCredito()));
                 linea.append(";").append(limpiarParaPersistencia(estudiante.getNumeroMatricula()));
-                anadirPreferenciasParticipante(linea, estudiante);
+                linea.append(";").append(limpiarParaPersistencia(convertirPreferenciasATexto(estudiante)));
                 break;
             case PERSONAL_UPM:
                 PersonalUPM personal = (PersonalUPM) usuario;
-                anadirDatosComunesParticipante(linea, personal);
+                linea.append(";").append(limpiarParaPersistencia(personal.getDNI()));
+                linea.append(";").append(limpiarParaPersistencia(personal.getTarjetaCredito()));
                 linea.append(";").append(personal.getAntiguedad());
-                anadirPreferenciasParticipante(linea, personal);
+                linea.append(";").append(limpiarParaPersistencia(convertirPreferenciasATexto(personal)));
                 break;
             case PARTICIPANTE_EXTERNO:
                 ParticipanteExterno participante = (ParticipanteExterno) usuario;
-                anadirDatosComunesParticipante(linea, participante);
-                anadirPreferenciasParticipante(linea, participante);
+                linea.append(";").append(limpiarParaPersistencia(participante.getDNI()));
+                linea.append(";").append(limpiarParaPersistencia(participante.getTarjetaCredito()));
+                linea.append(";").append(limpiarParaPersistencia(convertirPreferenciasATexto(participante)));
                 break;
             default:
                 break;
         }
 
         return linea.toString();
-    }
-
-    private void anadirDatosComunesParticipante(StringBuilder linea, ParticipanteExterno participante) {
-        linea.append(";").append(limpiarParaPersistencia(participante.getDNI()));
-        linea.append(";").append(limpiarParaPersistencia(participante.getTarjetaCredito()));
-    }
-
-    private void anadirPreferenciasParticipante(StringBuilder linea, ParticipanteExterno participante) {
-        linea.append(";").append(limpiarParaPersistencia(convertirPreferenciasATexto(participante)));
     }
 
     private String obtenerCodigoTipo(Usuario usuario) {

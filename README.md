@@ -1,22 +1,146 @@
-# Proyecto UPM-Arts
-Proyecto a entregar de la asiganatura Fundamentos de la ingeniería del sofware , contenido correspondiente con la primera entrega de dicho proyecto , realizado por el grupo CITIM21-3-UPMArts .
+# Proyecto UPMArts
 
-## Resumen del Proyecto
-UPM-Arts es una aplicación software desarrollada para gestionar el nuevo Centro de Creación Cultural situado en el Campus Sur de la Universidad Politécnica de Madrid (UPM). Este sistema está diseñado para dar soporte a disciplinas artísticas como la música, la pintura y el teatro, permitiendo la participación tanto de la comunidad universitaria como de ciudadanos externos. La plataforma facilita la gestión de distintos tipos de usuarios (participantes, instructores y administradores), la administración de los espacios y sus recursos, la organización de sesiones de trabajo libre y cursos, así como la creación y gestión de asociaciones culturales.
+Repositorio del proyecto UPMArts, realizado para la asignatura de Fundamentos de la Ingeniería del Software por el grupo **CITIM21-3-UPMArts**.
 
-## Equipo de Desarrollo
-Este proyecto ha sido realizado por el equipo **CITIM21-3-UPMArts**, compuesto por los siguientes integrantes:
-* FILALI BELHADJ CHAQROUNE, YASSIR
-* GOMEZ MORENO, CARLOS
-* MARGELINO GONZALES, ERIKA
-* PANIS MARAMBA, TRISHALYN
-* ZHANG, JIONGHAO
+UPMArts es una aplicación pensada para apoyar la gestión del Centro de Creación Cultural de la Universidad Politécnica de Madrid. El sistema contempla usuarios de distintos tipos, actividades culturales, espacios, recursos, cursos, sesiones libres y asociaciones culturales.
 
-## Gestión del Proyecto
-Toda la especificación de requisitos, la wiki y la gestión de tareas se encuentran alojadas en nuestra plataforma de Redmine. Puedes acceder al proyecto a través del siguiente enlace:
-**[Proyecto CITIM21-3-UPMArts en Redmine](https://fis.etsisi.upm.es/projects/citim21-3-upmarts)**
+## Equipo
 
-## Contenido del Repositorio
-Este repositorio almacena todos los artefactos correspondientes a la primera entrega del proyecto, centrada en la Especificación de Requisitos y el Análisis. En su interior se incluye una carpeta dedicada al prototipo, la cual contiene un diseño interactivo o visual que simula el funcionamiento de UPM Arts, centrado concretamente en las funcionalidades relativas al registro de los usuarios. 
+- FILALI BELHADJ CHAQROUNE, YASSIR
+- GOMEZ MORENO, CARLOS
+- MARGELINO GONZALES, ERIKA
+- PANIS MARAMBA, TRISHALYN
+- ZHANG, JIONGHAO
 
-Por otro lado, el repositorio alberga todo el material de la fase de modelado. Esto engloba el proyecto principal de análisis creado con la herramienta StarUML, acompañado de las imágenes exportadas de todos los diagramas generados. Entre estos diagramas se encuentran los de casos de uso para cada subconjunto de funcionalidades y un diagrama de clases de análisis completo del sistema. Además, se adjuntan las descripciones extendidas de los casos de uso en formato PDF (una redactada por cada integrante del grupo) y un documento PDF recopilatorio que unifica todos los diagramas de StarUML para facilitar su revisión y evaluación.
+## Enlace de gestión
+
+La información de seguimiento del proyecto se encuentra en Redmine:
+
+[Proyecto CITIM21-3-UPMArts en Redmine](https://fis.etsisi.upm.es/projects/citim21-3-upmarts)
+
+## Estructura del repositorio
+
+```text
+citim21-3-upmarts/
+├── Entrega 1/
+│   ├── Modelado/
+│   └── Prototipo/
+└── Entrega 2/
+    ├── Construccion/
+    ├── Diseño/
+    └── Pruebas/
+```
+
+## Entrega 1
+
+La primera entrega recoge el trabajo de análisis inicial del sistema.
+
+Contenido principal:
+
+- Prototipo visual de UPMArts en PDF.
+- Proyecto de modelado en StarUML.
+- Diagramas de casos de uso.
+- Diagrama de clases de análisis.
+- Descripciones extendidas de casos de uso.
+- PDF recopilatorio con los diagramas principales.
+
+Archivos y carpetas más importantes:
+
+- `Entrega 1/Prototipo/UPM-Arts.pdf`
+- `Entrega 1/Modelado/ StarUML/CITIM21-3-UPMArts.uml`
+- `Entrega 1/Modelado/Diagramas/`
+- `Entrega 1/Modelado/PDF Recopilatorio/UPM_Arts_Modelado_Completo.pdf`
+
+## Entrega 2
+
+La segunda entrega contiene el diseño, la construcción del proyecto Java y la documentación de pruebas.
+
+Contenido principal:
+
+- Diseño actualizado del sistema.
+- Proyecto Java ejecutable con Maven.
+- Pruebas unitarias del controlador de usuarios.
+- Documento de pruebas unitarias.
+- Documento de pruebas de validación.
+
+Archivos y carpetas más importantes:
+
+- `Entrega 2/Diseño/CITIM21-3-UPMArts.uml`
+- `Entrega 2/Construccion/upmarts-entrega2/`
+- `Entrega 2/Pruebas/Pruebas Unitarias.docx`
+- `Entrega 2/Pruebas/Pruebas de Validación.docx`
+
+## Proyecto de software
+
+El proyecto ejecutable está en:
+
+```text
+Entrega 2/Construccion/upmarts-entrega2
+```
+
+Es una aplicación de consola en Java que implementa la gestión básica de usuarios de UPMArts:
+
+- registro de participantes externos;
+- registro de estudiantes UPM;
+- registro de personal UPM/PDI/PAS;
+- registro de instructores por administrador;
+- inicio de sesión;
+- listado de usuarios desde administración;
+- baja de usuarios;
+- modificación de datos y preferencias artísticas;
+- persistencia en fichero.
+
+Para compilar y probar:
+
+```bash
+cd "Entrega 2/Construccion/upmarts-entrega2"
+mvn clean test
+```
+
+Para generar y ejecutar el JAR:
+
+```bash
+mvn package
+java -jar target/upmarts-1.0-SNAPSHOT.jar
+```
+
+La explicación detallada del software está en:
+
+```text
+Entrega 2/Construccion/upmarts-entrega2/README.md
+```
+
+## Requisitos para ejecutar el software
+
+- Java 8 o superior.
+- Maven 3.x.
+- `externals-2.0.jar` situado en la raíz del proyecto Maven.
+
+El POM utiliza la dependencia externa con `scope` `system`, siguiendo la configuración indicada para la asignatura.
+
+## Organización del código
+
+Dentro del proyecto Maven:
+
+- `src/main/java/upmarts/modelo`: clases del dominio.
+- `src/main/java/upmarts/controlador`: lógica principal de los casos de uso de usuarios.
+- `src/main/java/upmarts/vista`: interfaz de consola.
+- `src/main/java/upmarts/validacion`: reglas de validación de datos.
+- `src/main/java/upmarts/persistencia`: lectura y escritura de usuarios.
+- `src/main/java/upmarts/integracion`: validación de cuentas UPM mediante la librería externa.
+- `src/test/java/upmarts/controlador`: pruebas unitarias.
+
+## Estado de la entrega
+
+El proyecto de software compila con Maven, ejecuta las pruebas unitarias y genera el JAR de la aplicación.
+
+Comprobaciones recomendadas antes de revisar la entrega:
+
+```bash
+cd "Entrega 2/Construccion/upmarts-entrega2"
+mvn clean test
+mvn package
+java -jar target/upmarts-1.0-SNAPSHOT.jar
+```
+
+Durante Maven puede aparecer un aviso por el uso de `systemPath` para `externals-2.0.jar`. No impide la compilación ni la ejecución del proyecto.

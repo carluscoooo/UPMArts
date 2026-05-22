@@ -108,13 +108,9 @@ public class ControladorUsuarios implements IControladorUsuarios {
         return ultimoError;
     }
 
-    private void setUltimoError(String mensaje) {
-        this.ultimoError = mensaje;
-    }
-
     @Override
     public String validarNombreRegistro(String nombre) {
-        return validarNombre(nombre);
+        return ValidadorDatosUsuario.validarNombre(nombre);
     }
 
     @Override
@@ -123,7 +119,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return ultimoError;
         }
 
-        String error = validarFormatoNick(nick);
+        String error = ValidadorDatosUsuario.validarNickConMensaje(nick);
         if (error != null) {
             return error;
         }
@@ -137,27 +133,27 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return ultimoError;
         }
 
-        String error = validarFormatoCorreo(correo);
+        String error = ValidadorDatosUsuario.validarCorreo(correo);
         if (error != null) {
             return error;
         }
 
-        return existeCorreo(correo) ? ERROR_CORREO_DUPLICADO : null;
+        return buscarUsuarioPorCorreo(correo) != null ? ERROR_CORREO_DUPLICADO : null;
     }
 
     @Override
     public String validarPasswordRegistro(String password) {
-        return validarFormatoPassword(password);
+        return ValidadorDatosUsuario.validarPasswordConMensaje(password);
     }
 
     @Override
     public String validarDNIRegistro(String dni) {
-        return validarFormatoDNI(dni);
+        return ValidadorDatosUsuario.validarDNI(dni);
     }
 
     @Override
     public String validarTarjetaRegistro(String tarjeta) {
-        return validarFormatoTarjeta(tarjeta);
+        return ValidadorDatosUsuario.validarTarjeta(tarjeta);
     }
 
     @Override
@@ -175,7 +171,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
 
     @Override
     public String validarIBANRegistro(String iban) {
-        return validarFormatoIBAN(iban);
+        return ValidadorDatosUsuario.validarIBAN(iban);
     }
 
     @Override
@@ -185,7 +181,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
 
     @Override
     public String detectarTipoParticipantePorCorreo(String correo) {
-        if (!validarCorreo(correo)) {
+        if (ValidadorDatosUsuario.validarCorreo(correo) != null) {
             return TIPO_CORREO_INVALIDO;
         }
 
@@ -210,23 +206,23 @@ public class ControladorUsuarios implements IControladorUsuarios {
         if (!refrescarUsuarios()) {
             return false;
         }
-        setUltimoError(null);
+        ultimoError = null;
 
         String error = validarDatosComunes(nombre, nick, correo, password);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
-        error = validarFormatoDNI(dni);
+        error = ValidadorDatosUsuario.validarDNI(dni);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
-        error = validarFormatoTarjeta(tarjeta);
+        error = ValidadorDatosUsuario.validarTarjeta(tarjeta);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
@@ -243,12 +239,12 @@ public class ControladorUsuarios implements IControladorUsuarios {
         if (TIPO_ALUMNO_UPM.equals(tipo)) {
             error = validarDatoEspecificoRegistro(tipo, datoEspecifico);
             if (error != null) {
-                setUltimoError(error);
+                ultimoError = error;
                 return false;
             }
 
-            if (!validarUPM(correo, password)) {
-                setUltimoError(ERROR_VALIDACION_UPM);
+            if (validadorUPM == null || !validadorUPM.verificarCredencialesUPM(correo, password)) {
+                ultimoError = ERROR_VALIDACION_UPM;
                 return false;
             }
 
@@ -259,14 +255,14 @@ public class ControladorUsuarios implements IControladorUsuarios {
         }
 
         if (TIPO_PERSONAL_UPM.equals(tipo)) {
-            if (!validarUPM(correo, password)) {
-                setUltimoError(ERROR_VALIDACION_UPM);
+            if (validadorUPM == null || !validadorUPM.verificarCredencialesUPM(correo, password)) {
+                ultimoError = ERROR_VALIDACION_UPM;
                 return false;
             }
 
             error = validarDatoEspecificoRegistro(tipo, datoEspecifico);
             if (error != null) {
-                setUltimoError(error);
+                ultimoError = error;
                 return false;
             }
 
@@ -278,7 +274,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return guardarUsuarios();
         }
 
-        setUltimoError("No se pudo registrar el participante por un error desconocido.");
+        ultimoError = "No se pudo registrar el participante por un error desconocido.";
         return false;
     }
 
@@ -287,30 +283,30 @@ public class ControladorUsuarios implements IControladorUsuarios {
         if (!refrescarUsuarios()) {
             return null;
         }
-        setUltimoError(null);
+        ultimoError = null;
 
-        String errorCorreo = validarFormatoCorreo(correo);
+        String errorCorreo = ValidadorDatosUsuario.validarCorreo(correo);
         if (errorCorreo != null) {
-            setUltimoError(errorCorreo);
+            ultimoError = errorCorreo;
             return null;
         }
 
         String errorPassword = ValidadorDatosUsuario.validarPasswordLogin(password);
         if (errorPassword != null) {
-            setUltimoError(errorPassword);
+            ultimoError = errorPassword;
             return null;
         }
 
         Usuario usuario = buscarUsuarioPorCorreo(correo);
         if (usuario == null) {
-            setUltimoError(ERROR_CORREO_NO_REGISTRADO);
+            ultimoError = ERROR_CORREO_NO_REGISTRADO;
             return null;
         }
 
         String passwordCifrada = ValidadorDatosUsuario.cifrarPassword(password);
 
         if (!usuario.getContrasena().equals(passwordCifrada)) {
-            setUltimoError(ERROR_PASSWORD_ERRONEA);
+            ultimoError = ERROR_PASSWORD_ERRONEA;
             return null;
         }
 
@@ -323,28 +319,28 @@ public class ControladorUsuarios implements IControladorUsuarios {
         if (!refrescarUsuarios()) {
             return false;
         }
-        setUltimoError(null);
+        ultimoError = null;
 
         if (administrador == null) {
-            setUltimoError("Administrador inválido.");
+            ultimoError = "Administrador inválido.";
             return false;
         }
 
         String error = validarDatosComunes(nombre, nick, correo, password);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
-        error = validarFormatoDNI(dni);
+        error = ValidadorDatosUsuario.validarDNI(dni);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
-        error = validarFormatoIBAN(iban);
+        error = ValidadorDatosUsuario.validarIBAN(iban);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
@@ -384,7 +380,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return false;
         }
 
-        if (usuario == null || !esBajaPermitida(usuario)) {
+        if (usuario == null || (usuario.getRol() != RolUsuario.INSTRUCTOR && !tieneRolParticipante(usuario))) {
             return false;
         }
 
@@ -430,57 +426,57 @@ public class ControladorUsuarios implements IControladorUsuarios {
         if (!refrescarUsuarios()) {
             return false;
         }
-        setUltimoError(null);
+        ultimoError = null;
 
         if (participante == null) {
-            setUltimoError("Participante inválido.");
+            ultimoError = "Participante inválido.";
             return false;
         }
 
         Usuario usuarioGuardado = buscarUsuarioPorCorreo(participante.getCorreoElectronico());
 
         if (!tieneRolParticipante(usuarioGuardado)) {
-            setUltimoError("No se pudo localizar el participante.");
+            ultimoError = "No se pudo localizar el participante.";
             return false;
         }
 
-        String error = validarNombre(nombre);
+        String error = ValidadorDatosUsuario.validarNombre(nombre);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
-        error = validarFormatoNick(nick);
+        error = ValidadorDatosUsuario.validarNickConMensaje(nick);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
-        error = validarFormatoCorreo(correo);
+        error = ValidadorDatosUsuario.validarCorreo(correo);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
         if (existeNickDiferente(usuarioGuardado, nick)) {
-            setUltimoError(ERROR_NICK_DUPLICADO);
+            ultimoError = ERROR_NICK_DUPLICADO;
             return false;
         }
 
         if (existeCorreoDiferente(usuarioGuardado, correo)) {
-            setUltimoError(ERROR_CORREO_DUPLICADO);
+            ultimoError = ERROR_CORREO_DUPLICADO;
             return false;
         }
 
-        error = validarFormatoDNI(dni);
+        error = ValidadorDatosUsuario.validarDNI(dni);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
-        error = validarFormatoTarjeta(tarjeta);
+        error = ValidadorDatosUsuario.validarTarjeta(tarjeta);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
@@ -490,19 +486,21 @@ public class ControladorUsuarios implements IControladorUsuarios {
 
         // El cambio de correo no debe convertir un alumno UPM en externo, o al contrario.
         if (!tipoActual.equals(tipoCorreo)) {
-            setUltimoError("El correo no corresponde con el tipo de participante.");
+            ultimoError = "El correo no corresponde con el tipo de participante.";
             return false;
         }
 
-        error = ValidadorDatosUsuario.textoVacio(password) ? null : validarFormatoPassword(password);
+        error = ValidadorDatosUsuario.textoVacio(password)
+                ? null
+                : ValidadorDatosUsuario.validarPasswordConMensaje(password);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
         error = obtenerErrorDatoEspecificoParticipante(participanteGuardado, datoEspecifico);
         if (error != null) {
-            setUltimoError(error);
+            ultimoError = error;
             return false;
         }
 
@@ -619,11 +617,15 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return 0.0;
         }
 
-        return calcularDescuentoUsuario(usuario);
-    }
-
-    private boolean esBajaPermitida(Usuario usuario) {
-        return usuario.getRol() == RolUsuario.INSTRUCTOR || tieneRolParticipante(usuario);
+        switch (usuario.getRol()) {
+            case ESTUDIANTE_UPM:
+                return 0.25;
+            case PERSONAL_UPM:
+                PersonalUPM personal = (PersonalUPM) usuario;
+                return Math.min(0.25 + personal.getAntiguedad() * 0.03, 0.5);
+            default:
+                return 0.0;
+        }
     }
 
     private String obtenerTipoRegistro(ParticipanteExterno participante) {
@@ -667,18 +669,6 @@ public class ControladorUsuarios implements IControladorUsuarios {
         }
     }
 
-    private double calcularDescuentoUsuario(Usuario usuario) {
-        switch (usuario.getRol()) {
-            case ESTUDIANTE_UPM:
-                return 0.25;
-            case PERSONAL_UPM:
-                PersonalUPM personal = (PersonalUPM) usuario;
-                return Math.min(0.25 + personal.getAntiguedad() * 0.03, 0.5);
-            default:
-                return 0.0;
-        }
-    }
-
     private boolean tieneRolParticipante(Usuario usuario) {
         if (usuario == null) {
             return false;
@@ -696,7 +686,7 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return true;
         } catch (RuntimeException e) {
             usuarios = new ArrayList<>();
-            setUltimoError(ERROR_PERSISTENCIA_LECTURA);
+            ultimoError = ERROR_PERSISTENCIA_LECTURA;
             return false;
         }
     }
@@ -706,33 +696,33 @@ public class ControladorUsuarios implements IControladorUsuarios {
             persistencia.guardarUsuarios(usuarios);
             return true;
         } catch (RuntimeException e) {
-            setUltimoError(ERROR_PERSISTENCIA_GUARDADO);
+            ultimoError = ERROR_PERSISTENCIA_GUARDADO;
             return false;
         }
     }
 
     private String validarDatosComunes(String nombre, String nick, String correo, String password) {
-        String error = validarNombre(nombre);
+        String error = ValidadorDatosUsuario.validarNombre(nombre);
         if (error != null) {
             return error;
         }
 
-        error = validarFormatoNick(nick);
+        error = ValidadorDatosUsuario.validarNickConMensaje(nick);
         if (error != null) {
             return error;
         }
 
-        error = validarFormatoPassword(password);
+        error = ValidadorDatosUsuario.validarPasswordConMensaje(password);
         if (error != null) {
             return error;
         }
 
-        error = validarFormatoCorreo(correo);
+        error = ValidadorDatosUsuario.validarCorreo(correo);
         if (error != null) {
             return error;
         }
 
-        if (existeCorreo(correo)) {
+        if (buscarUsuarioPorCorreo(correo) != null) {
             return ERROR_CORREO_DUPLICADO;
         }
 
@@ -741,50 +731,6 @@ public class ControladorUsuarios implements IControladorUsuarios {
         }
 
         return null;
-    }
-
-    private boolean validarUPM(String correo, String password) {
-        if (this.validadorUPM == null) {
-            return false;
-        }
-
-        return this.validadorUPM.verificarCredencialesUPM(correo, password);
-    }
-
-    private boolean validarCorreo(String correo) {
-        return validarFormatoCorreo(correo) == null;
-    }
-
-    private String validarNombre(String nombre) {
-        return ValidadorDatosUsuario.validarNombre(nombre);
-    }
-
-    private String validarFormatoNick(String nick) {
-        return ValidadorDatosUsuario.validarNickConMensaje(nick);
-    }
-
-    private String validarFormatoPassword(String password) {
-        return ValidadorDatosUsuario.validarPasswordConMensaje(password);
-    }
-
-    private String validarFormatoCorreo(String correo) {
-        return ValidadorDatosUsuario.validarCorreo(correo);
-    }
-
-    private String validarFormatoDNI(String dni) {
-        return ValidadorDatosUsuario.validarDNI(dni);
-    }
-
-    private String validarFormatoTarjeta(String tarjeta) {
-        return ValidadorDatosUsuario.validarTarjeta(tarjeta);
-    }
-
-    private String validarFormatoIBAN(String iban) {
-        return ValidadorDatosUsuario.validarIBAN(iban);
-    }
-
-    private boolean existeCorreo(String correo) {
-        return buscarUsuarioPorCorreo(correo) != null;
     }
 
     private boolean existeNick(String nick) {

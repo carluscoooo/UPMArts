@@ -18,6 +18,7 @@ public class AdaptadorLDAP implements IValidadorUPM {
         }
 
         try {
+            // Se usa reflexion para no depender de clases concretas al ejecutar fuera de Maven.
             if (!existeCuentaUPM(correoNormalizado)) {
                 return false;
             }
@@ -30,11 +31,7 @@ public class AdaptadorLDAP implements IValidadorUPM {
                     && email != null
                     && correoNormalizado.equals(email.trim().toLowerCase())
                     && rolCompatibleConCorreo(correoNormalizado, rol);
-        } catch (ReflectiveOperationException | SecurityException e) {
-            return validarSinLibreriaExterna(password);
-        } catch (LinkageError e) {
-            return validarSinLibreriaExterna(password);
-        } catch (RuntimeException e) {
+        } catch (ReflectiveOperationException | LinkageError | RuntimeException e) {
             return validarSinLibreriaExterna(password);
         }
     }
