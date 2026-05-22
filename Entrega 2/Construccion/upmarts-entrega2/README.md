@@ -1,152 +1,250 @@
-# UPM Arts - Entrega 2
+# UPMArts - Entrega 2
 
-Aplicacion CLI en Java para la gestion de usuarios del sistema UPM Arts.
+Aplicacion de consola en Java para gestionar usuarios del sistema UPMArts.
 
-## Resumen
+El proyecto esta organizado como una aplicacion Maven y cubre el registro, inicio de sesion y gestion basica de usuarios del centro cultural.
 
-El proyecto implementa el alta, acceso y gestion basica de usuarios para una aplicacion de consola.
-El sistema distingue administradores, instructores, participantes externos, estudiantes UPM y personal UPM.
+## Funcionalidades principales
 
-La persistencia de usuarios se realiza en fichero plano y la validacion de cuentas UPM se delega en un
-adaptador LDAP que usa la dependencia local `externals:5.1`.
+- Registro de participantes.
+- Deteccion automatica del tipo de participante segun el correo:
+  - `@alumnos.upm.es`: estudiante UPM.
+  - `@upm.es`: personal UPM/PDI/PAS.
+  - otros dominios validos: participante externo.
+- Registro de instructores desde el menu de administrador.
+- Inicio de sesion con mensajes de error especificos.
+- Listado de participantes e instructores desde administrador.
+- Baja de usuarios.
+- Consulta y modificacion de datos de participante.
+- Consulta y modificacion de preferencias artisticas.
+- Persistencia en fichero plano.
 
 ## Requisitos
 
-- Java 8 o superior
-- Maven 3.x
+- Java 8 o superior.
+- Maven 3.x.
+- El fichero `externals-2.0.jar` debe estar en la raiz del proyecto, porque el `pom.xml` lo referencia con `systemPath`.
 
-## Como ejecutar
+## Compilar, probar y ejecutar
 
-Para compilar y ejecutar las pruebas:
+Para compilar y lanzar las pruebas:
 
 ```bash
 mvn clean test
 ```
 
-Para generar el paquete:
+Para generar el JAR:
 
 ```bash
 mvn clean package
 ```
 
-Para lanzar la aplicacion:
+Para ejecutar la aplicacion empaquetada:
 
 ```bash
 java -jar target/upmarts-1.0-SNAPSHOT.jar
 ```
 
-La clase principal es `upmarts.App`.
+La clase principal es:
 
-## Datos del proyecto
+```text
+upmarts.App
+```
 
-La carpeta `data` ya forma parte del proyecto y contiene los usuarios persistidos:
+Si se ejecuta desde VS Code sin Maven, hay que asegurarse de que el classpath incluye las clases compiladas y `externals-2.0.jar`. La forma mas fiable de compilar y empaquetar el proyecto es Maven.
 
-- `data/usuarios.txt`: almacenamiento de usuarios
+## Avisos conocidos de Maven
 
-El controlador y la capa de persistencia trabajan con esa ruta:
+Durante `mvn package` puede aparecer un aviso parecido a este:
 
-- `upmarts.controlador.ControladorUsuarios`
-- `upmarts.persistencia.GestorFicheroUsuarios`
+```text
+'dependencies.dependency.systemPath' ... should not point at files within the project directory
+```
+
+Ese aviso aparece porque el POM de la asignatura usa una dependencia con `scope` `system` y `systemPath`. No impide compilar ni ejecutar los tests.
+
+El empaquetado tambien genera un JAR de Javadoc mediante `maven-javadoc-plugin`.
 
 ## Usuarios iniciales
 
-El proyecto arranca con usuarios precargados en `data/usuarios.txt`. Ademas, el controlador garantiza que
-existan al menos un administrador y un instructor.
+El controlador garantiza que existan al menos estos usuarios:
 
-Usuarios disponibles en el fichero actual:
+- Administrador:
+  - correo: `admin@upm.es`
+  - password: `Admin123456A`
+- Instructor:
+  - correo: `instructor@upm.es`
+  - password: `Instructor123A`
 
-- Administrador: `admin@upm.es`
-- Instructor: `instructor@upm.es`
-- Estudiante UPM: `carlos.gomez.moreno@alumnos.upm.es`
-- Personal UPM: `luis.martin@upm.es`
-- Participante externo: `pedro@externo.com`
+El fichero `data/usuarios.txt` puede contener mas usuarios creados durante las pruebas manuales. Las contrasenas se guardan cifradas con SHA-256, no en texto plano.
 
-Credenciales conocidas del conjunto inicial:
+## Roles del sistema
 
-- `admin@upm.es` -> `Admin123456A`
-- `instructor@upm.es` -> `Instructor123A`
-- `carlos.gomez.moreno@alumnos.upm.es` -> `Admin123456A`
-- `luis.martin@upm.es` -> `Instructor123A`
-- `pedro@externo.com` -> `Instructor123A`
+Los roles se identifican con el enum `RolUsuario`:
 
-Las contrasenas se almacenan cifradas con SHA-256.
+- `ADMINISTRADOR`
+- `INSTRUCTOR`
+- `PARTICIPANTE_EXTERNO`
+- `ESTUDIANTE_UPM`
+- `PERSONAL_UPM`
 
-## Tipos de usuario
-
-- `Administrador`: puede listar usuarios, dar de alta instructores y dar de baja usuarios.
-- `Instructor`: usuario interno con DNI e IBAN.
-- `ParticipanteExterno`: participante general con DNI, tarjeta y preferencias artisticas.
-- `EstudianteUPM`: participante UPM con matricula.
-- `PersonalUPM`: participante UPM con antiguedad.
-
-La jerarquia actual relevante es:
+La jerarquia principal del modelo es:
 
 - `Usuario`
-- `RolUsuario`: enum identificativo del rol de dominio
 - `UsuarioConDNI`
+- `Administrador`
+- `Instructor`
 - `ParticipanteExterno`
-- `EstudianteUPM` / `PersonalUPM`
+- `EstudianteUPM`
+- `PersonalUPM`
+
+`EstudianteUPM` y `PersonalUPM` heredan de `ParticipanteExterno`, porque tambien son participantes y comparten DNI, tarjeta y preferencias artisticas.
+
+## Estructura del codigo
+
+- `upmarts.App`: punto de entrada de la aplicacion.
+- `upmarts.vista`: interfaz de consola. Pide datos y muestra mensajes.
+- `upmarts.controlador`: coordina los casos de uso y decide el flujo de registro, login y administracion.
+- `upmarts.validacion`: validaciones de formato y reglas simples de entrada.
+- `upmarts.modelo`: clases de dominio y enums.
+- `upmarts.persistencia`: lectura y escritura de usuarios en fichero.
+- `upmarts.integracion`: adaptador para validar cuentas UPM con la libreria externa.
+
+La vista no valida reglas por su cuenta. Llama al controlador, y el controlador delega las validaciones de formato en `ValidadorDatosUsuario`.
 
 ## Reglas de validacion
 
-Alta de participantes:
+Las validaciones de formato estan centralizadas en:
 
-- nombre no vacio
-- nick alfanumerico de 4 a 12 caracteres
-- password de al menos 12 caracteres con mayusculas, minusculas y numeros
-- correo con formato basico valido
-- correo y nick no duplicados
-- DNI con 8 digitos y una letra
-- tarjeta con entre 8 y 19 digitos
+```text
+src/main/java/upmarts/validacion/ValidadorDatosUsuario.java
+```
 
-Segun el correo:
+Reglas principales:
 
-- `@alumnos.upm.es` -> estudiante UPM
-- `@upm.es` -> personal UPM
-- cualquier otro dominio valido -> participante externo
+- Nombre completo obligatorio.
+- Nick obligatorio, alfanumerico, de 4 a 12 caracteres y sin terminos conflictivos.
+- Correo obligatorio y con formato tipo `usuario@dominio.com`.
+- Correo no repetido entre usuarios.
+- Password obligatoria, con al menos 12 caracteres, una mayuscula, una minuscula y un numero.
+- DNI obligatorio con 8 digitos y 1 letra.
+- Tarjeta obligatoria con exactamente 16 digitos.
+- IBAN obligatorio con formato espanol: `ES` seguido de 22 digitos.
+- Matricula obligatoria para estudiantes UPM.
+- Antiguedad obligatoria para personal UPM, numerica y mayor o igual que 0.
+- Preferencias artisticas: `MUSICA`, `PINTURA` y `TEATRO`, con nivel de 0 a 10. El valor 0 significa que no se registra esa preferencia.
 
-Para cuentas UPM, el alta pasa por `upmarts.integracion.AdaptadorLDAP`.
+El controlador mantiene las validaciones que dependen del estado del sistema:
 
-## LDAP y dependencia externa
-
-La validacion UPM utiliza:
-
-- dependencia Maven: `es.upm.etsisi.califyme:externals:5.1`
-- repositorio local: `lib/maven-repo`
-
-No se usa `systemPath`. La dependencia se resuelve desde el repositorio Maven local declarado en `pom.xml`.
+- nick duplicado;
+- correo duplicado;
+- correo no registrado al iniciar sesion;
+- password erronea en login;
+- permisos de administrador;
+- validacion externa UPM;
+- errores de lectura o guardado en persistencia.
 
 ## Terminos conflictivos
 
-La validacion de nick usa:
+La lista de terminos no permitidos para el nick se carga en este orden:
 
-- primero `data/terminos_conflictivos.txt` si existe
-- en su defecto `src/main/resources/terminos_conflictivos.txt`
+1. `data/terminos_conflictivos.txt`, si existe.
+2. `src/main/resources/terminos_conflictivos.txt`, como recurso empaquetado.
 
-## Estructura del proyecto
+Esto permite cambiar la lista externa sin recompilar, pero el proyecto tambien tiene una lista por defecto en recursos.
 
-- `src/main/java`: codigo fuente
-- `src/main/resources`: recursos empaquetados
-- `src/test/java`: pruebas JUnit
-- `data`: datos persistidos del proyecto
-- `lib/maven-repo`: repositorio local de la dependencia externa
-- `pom.xml`: build Maven
+## Validacion UPM
+
+La validacion de cuentas UPM esta encapsulada en:
+
+```text
+src/main/java/upmarts/integracion/AdaptadorLDAP.java
+```
+
+El adaptador usa reflexion para llamar a la libreria externa incluida en `externals-2.0.jar`. Comprueba:
+
+- que el correo pertenezca a un dominio UPM;
+- que la cuenta exista segun la libreria externa;
+- que el rol devuelto sea compatible con el correo:
+  - `@alumnos.upm.es` debe corresponder a alumno;
+  - `@upm.es` debe corresponder a PDI o PAS.
+
+Si la libreria externa no esta disponible en tiempo de ejecucion, el adaptador usa una validacion minima de respaldo para poder probar la aplicacion fuera de Maven.
+
+## Persistencia
+
+Los usuarios se guardan en:
+
+```text
+data/usuarios.txt
+```
+
+La clase responsable es:
+
+```text
+src/main/java/upmarts/persistencia/GestorFicheroUsuarios.java
+```
+
+Formato general:
+
+```text
+TIPO;nick;nombre;correo;passwordCifrada;camposPropiosDelRol
+```
+
+Ejemplos de campos propios:
+
+- Administrador: telefono.
+- Instructor: DNI e IBAN.
+- Participante externo: DNI, tarjeta y preferencias.
+- Estudiante UPM: DNI, tarjeta, matricula y preferencias.
+- Personal UPM: DNI, tarjeta, antiguedad y preferencias.
+
+Si una linea del fichero no se puede convertir a usuario, se ignora para no romper la lectura completa.
+
+## Gestion de errores
+
+La aplicacion tiene un `try/catch` final en `App` para evitar que un error no controlado muestre una traza al usuario.
+
+Ademas:
+
+- el controlador guarda el ultimo error en `ultimoError`;
+- la vista muestra ese mensaje cuando una operacion no se puede completar;
+- los errores de lectura y guardado de usuarios se transforman en mensajes controlados;
+- el login distingue entre correo no registrado y password erronea.
 
 ## Pruebas
 
-Las pruebas automatizadas estan implementadas con JUnit 4 dentro de la estructura Maven del proyecto.
+Las pruebas estan en:
 
-En particular, para la controladora de usuarios hay pruebas de:
+```text
+src/test/java/upmarts/controlador
+```
 
-- caja negra
-- caja blanca
+Clases principales:
 
-Archivos principales:
+- `ControladorUsuariosAltaAccesoCajaNegraTest`
+- `ControladorUsuariosAltaAccesoCajaBlancaTest`
 
-- `src/test/java/upmarts/controlador/ControladorUsuariosAltaAccesoCajaNegraTest.java`
-- `src/test/java/upmarts/controlador/ControladorUsuariosAltaAccesoCajaBlancaTest.java`
+Se ejecutan con:
 
-## Salida de compilacion
+```bash
+mvn test
+```
 
-El empaquetado Maven genera la carpeta `target`, que contiene los artefactos compilados y no debe
-seguirse en Git. El proyecto ya incluye `.gitignore` para evitarlo.
+Actualmente cubren altas validas e invalidas, login, validaciones de datos, duplicados, rutas de UPM, persistencia simulada y ramas principales del controlador.
+
+## Archivos importantes
+
+- `pom.xml`: configuracion Maven.
+- `externals-2.0.jar`: dependencia externa exigida por el POM.
+- `data/usuarios.txt`: datos persistidos de usuarios.
+- `src/main/resources/terminos_conflictivos.txt`: lista por defecto de nicks no permitidos.
+- `target/`: salida de compilacion generada por Maven. No debe versionarse.
+
+## Notas para desarrollo
+
+- Mantener las reglas de formato en `ValidadorDatosUsuario`.
+- Mantener en `ControladorUsuarios` solo la logica que necesita estado, persistencia, permisos o integracion externa.
+- Evitar que la vista contenga reglas de negocio; debe pedir datos y mostrar respuestas.
+- Si se cambia el formato de `data/usuarios.txt`, actualizar tambien `GestorFicheroUsuarios` y las pruebas.
+- Si se cambia una regla de validacion, actualizar las pruebas de caja negra.
