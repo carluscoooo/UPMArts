@@ -2,7 +2,7 @@ package upmarts.modelo;
 
 import java.util.List;
 
-public class EstudianteUPM extends ParticipanteExterno {
+public class EstudianteUPM extends ParticipanteUPM {
 
     private String numeroMatricula;
 

@@ -500,11 +500,10 @@ public class ControladorUsuarios implements IControladorUsuarios {
             return false;
         }
 
-        if (tieneDatoEspecifico(participanteGuardado)) {
-            if (!validarDatoEspecificoParticipante(participanteGuardado, datoEspecifico)) {
-                setUltimoError("El dato específico no es válido.");
-                return false;
-            }
+        error = obtenerErrorDatoEspecificoParticipante(participanteGuardado, datoEspecifico);
+        if (error != null) {
+            setUltimoError(error);
+            return false;
         }
 
         usuarioGuardado.setNombreCompleto(nombre.trim());
@@ -643,14 +642,14 @@ public class ControladorUsuarios implements IControladorUsuarios {
                 || participante.getRol() == RolUsuario.PERSONAL_UPM;
     }
 
-    private boolean validarDatoEspecificoParticipante(ParticipanteExterno participante, String datoEspecifico) {
+    private String obtenerErrorDatoEspecificoParticipante(ParticipanteExterno participante, String datoEspecifico) {
         switch (participante.getRol()) {
             case ESTUDIANTE_UPM:
-                return validarDatoEspecificoRegistro(TIPO_ALUMNO_UPM, datoEspecifico) == null;
+                return validarDatoEspecificoRegistro(TIPO_ALUMNO_UPM, datoEspecifico);
             case PERSONAL_UPM:
-                return validarDatoEspecificoRegistro(TIPO_PERSONAL_UPM, datoEspecifico) == null;
+                return validarDatoEspecificoRegistro(TIPO_PERSONAL_UPM, datoEspecifico);
             default:
-                return true;
+                return null;
         }
     }
 

@@ -2,7 +2,7 @@ package upmarts.modelo;
 
 import java.util.List;
 
-public class PersonalUPM extends ParticipanteExterno {
+public class PersonalUPM extends ParticipanteUPM {
 
     private int antiguedad;
 

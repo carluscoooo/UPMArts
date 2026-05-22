@@ -18,6 +18,7 @@ import upmarts.modelo.Administrador;
 import upmarts.modelo.EstudianteUPM;
 import upmarts.modelo.Instructor;
 import upmarts.modelo.ParticipanteExterno;
+import upmarts.modelo.ParticipanteUPM;
 import upmarts.modelo.PersonalUPM;
 import upmarts.modelo.Usuario;
 import upmarts.persistencia.IAccesoUsuarios;
@@ -300,6 +301,7 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
         Usuario usuario = controlador.login("alumno1@alumnos.upm.es", PASSWORD_VALIDO);
         assertNotNull(usuario);
         assertEquals(EstudianteUPM.class, usuario.getClass());
+        assertEquals(ParticipanteUPM.class, usuario.getClass().getSuperclass());
         assertEquals("MAT-001", ((EstudianteUPM) usuario).getNumeroMatricula());
     }
 
@@ -336,6 +338,7 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
         Usuario usuario = controlador.login("perso1@upm.es", PASSWORD_VALIDO);
         assertNotNull(usuario);
         assertEquals(PersonalUPM.class, usuario.getClass());
+        assertEquals(ParticipanteUPM.class, usuario.getClass().getSuperclass());
         assertEquals(0, ((PersonalUPM) usuario).getAntiguedad());
     }
 

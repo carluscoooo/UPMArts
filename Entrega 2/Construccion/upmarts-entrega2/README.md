@@ -95,10 +95,11 @@ La jerarquia principal del modelo es:
 - `Administrador`
 - `Instructor`
 - `ParticipanteExterno`
+- `ParticipanteUPM`
 - `EstudianteUPM`
 - `PersonalUPM`
 
-`EstudianteUPM` y `PersonalUPM` heredan de `ParticipanteExterno`, porque tambien son participantes y comparten DNI, tarjeta y preferencias artisticas.
+`ParticipanteUPM` hereda de `ParticipanteExterno` y agrupa a los participantes que pertenecen a la UPM. `EstudianteUPM` y `PersonalUPM` heredan de `ParticipanteUPM`.
 
 ## Estructura del codigo
 

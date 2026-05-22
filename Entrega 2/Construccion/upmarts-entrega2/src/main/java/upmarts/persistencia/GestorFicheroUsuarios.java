@@ -119,29 +119,35 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
                 break;
             case ESTUDIANTE_UPM:
                 EstudianteUPM estudiante = (EstudianteUPM) usuario;
-                linea.append(";").append(limpiarParaPersistencia(estudiante.getDNI()));
-                linea.append(";").append(limpiarParaPersistencia(estudiante.getTarjetaCredito()));
+                anadirDatosComunesParticipante(linea, estudiante);
                 linea.append(";").append(limpiarParaPersistencia(estudiante.getNumeroMatricula()));
-                linea.append(";").append(limpiarParaPersistencia(convertirPreferenciasATexto(estudiante)));
+                anadirPreferenciasParticipante(linea, estudiante);
                 break;
             case PERSONAL_UPM:
                 PersonalUPM personal = (PersonalUPM) usuario;
-                linea.append(";").append(limpiarParaPersistencia(personal.getDNI()));
-                linea.append(";").append(limpiarParaPersistencia(personal.getTarjetaCredito()));
+                anadirDatosComunesParticipante(linea, personal);
                 linea.append(";").append(personal.getAntiguedad());
-                linea.append(";").append(limpiarParaPersistencia(convertirPreferenciasATexto(personal)));
+                anadirPreferenciasParticipante(linea, personal);
                 break;
             case PARTICIPANTE_EXTERNO:
                 ParticipanteExterno participante = (ParticipanteExterno) usuario;
-                linea.append(";").append(limpiarParaPersistencia(participante.getDNI()));
-                linea.append(";").append(limpiarParaPersistencia(participante.getTarjetaCredito()));
-                linea.append(";").append(limpiarParaPersistencia(convertirPreferenciasATexto(participante)));
+                anadirDatosComunesParticipante(linea, participante);
+                anadirPreferenciasParticipante(linea, participante);
                 break;
             default:
                 break;
         }
 
         return linea.toString();
+    }
+
+    private void anadirDatosComunesParticipante(StringBuilder linea, ParticipanteExterno participante) {
+        linea.append(";").append(limpiarParaPersistencia(participante.getDNI()));
+        linea.append(";").append(limpiarParaPersistencia(participante.getTarjetaCredito()));
+    }
+
+    private void anadirPreferenciasParticipante(StringBuilder linea, ParticipanteExterno participante) {
+        linea.append(";").append(limpiarParaPersistencia(convertirPreferenciasATexto(participante)));
     }
 
     private String obtenerCodigoTipo(Usuario usuario) {
