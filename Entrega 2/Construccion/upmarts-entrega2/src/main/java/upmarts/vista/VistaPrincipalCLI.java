@@ -1,5 +1,6 @@
 package upmarts.vista;
 
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import upmarts.controlador.ControladorUsuarios;
@@ -9,6 +10,7 @@ public class VistaPrincipalCLI {
 
     private final Scanner scanner;
     private final IVistaUsuariosCLI vistaUsuariosCLI;
+    private boolean entradaCerrada;
 
     public VistaPrincipalCLI() {
         this(new Scanner(System.in));
@@ -28,7 +30,7 @@ public class VistaPrincipalCLI {
     public void iniciarAplicacion() {
         int opcion = -1;
 
-        while (opcion != 0) {
+        while (opcion != 0 && !entradaCerrada) {
             mostrarCabecera();
             System.out.println("1. Registrarse");
             System.out.println("2. Iniciar sesión");
@@ -38,9 +40,9 @@ public class VistaPrincipalCLI {
             opcion = leerEntero();
 
             if (opcion == 1) {
-                vistaUsuariosCLI.registrarParticipante();
+                ejecutarOperacion(() -> vistaUsuariosCLI.registrarParticipante());
             } else if (opcion == 2) {
-                vistaUsuariosCLI.iniciarSesion();
+                ejecutarOperacion(() -> vistaUsuariosCLI.iniciarSesion());
             } else if (opcion != 0) {
                 System.out.println("Opción no válida.");
             }
@@ -61,11 +63,37 @@ public class VistaPrincipalCLI {
     }
 
     private int leerEntero() {
+        String texto = leerLinea();
+        if (texto == null) {
+            return 0;
+        }
+
         try {
-            String texto = scanner.nextLine();
             return Integer.parseInt(texto.trim());
         } catch (NumberFormatException e) {
             return -1;
+        }
+    }
+
+    private String leerLinea() {
+        try {
+            if (scanner == null || !scanner.hasNextLine()) {
+                entradaCerrada = true;
+                return null;
+            }
+
+            return scanner.nextLine();
+        } catch (IllegalStateException | NoSuchElementException e) {
+            entradaCerrada = true;
+            return null;
+        }
+    }
+
+    private void ejecutarOperacion(Runnable operacion) {
+        try {
+            operacion.run();
+        } catch (RuntimeException e) {
+            System.out.println("No se pudo completar la operación. Vuelva a intentarlo.");
         }
     }
 }

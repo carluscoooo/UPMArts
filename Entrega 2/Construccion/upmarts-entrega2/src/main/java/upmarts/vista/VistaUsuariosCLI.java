@@ -2,6 +2,7 @@ package upmarts.vista;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import upmarts.controlador.ControladorUsuarios;
@@ -31,30 +32,22 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         System.out.println("--- Registro de participante ---");
         System.out.println("El tipo de participante se detectará automáticamente por el correo.");
 
-        String nombre = pedirTextoValidado("Nombre completo: ",
-                valor -> controladorUsuarios.validarNombreRegistro(valor));
-        String nick = pedirTextoValidado("Nick: ",
-                valor -> controladorUsuarios.validarNickRegistro(valor));
-        String correo = pedirTextoValidado("Correo electrónico: ",
-                valor -> controladorUsuarios.validarCorreoRegistro(valor));
+        String nombre = pedirNombre();
+        String nick = pedirNick();
+        String correo = pedirCorreo();
         String tipoRegistro = controladorUsuarios.detectarTipoParticipantePorCorreo(correo);
 
         mostrarTipoDetectado(tipoRegistro);
 
-        String password = pedirTextoValidado("Contraseña: ",
-                valor -> controladorUsuarios.validarPasswordRegistro(valor));
-        String dni = pedirTextoValidado("DNI: ",
-                valor -> controladorUsuarios.validarDNIRegistro(valor));
-        String tarjeta = pedirTextoValidado("Tarjeta de crédito/débito: ",
-                valor -> controladorUsuarios.validarTarjetaRegistro(valor));
+        String password = pedirPassword();
+        String dni = pedirDNI();
+        String tarjeta = pedirTarjeta();
         String datoEspecifico = "";
 
         if (ControladorUsuarios.TIPO_ALUMNO_UPM.equals(tipoRegistro)) {
-            datoEspecifico = pedirTextoValidado("Número de matrícula: ",
-                    valor -> controladorUsuarios.validarDatoEspecificoRegistro(tipoRegistro, valor));
+            datoEspecifico = pedirDatoEspecifico("Número de matrícula: ", tipoRegistro);
         } else if (ControladorUsuarios.TIPO_PERSONAL_UPM.equals(tipoRegistro)) {
-            datoEspecifico = pedirTextoValidado("Antigüedad en años: ",
-                    valor -> controladorUsuarios.validarDatoEspecificoRegistro(tipoRegistro, valor));
+            datoEspecifico = pedirDatoEspecifico("Antigüedad en años: ", tipoRegistro);
         }
 
         List<PreferenciaArtistica> preferencias = pedirPreferenciasArtisticas();
@@ -83,7 +76,11 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         Usuario usuario = controladorUsuarios.login(correo, password);
 
         if (usuario == null) {
-            System.out.println("Correo o contraseña incorrectos.");
+            if (!textoVacio(controladorUsuarios.getUltimoError())) {
+                System.out.println("No se pudo iniciar sesión: " + controladorUsuarios.getUltimoError());
+            } else {
+                System.out.println("Correo o contraseña incorrectos.");
+            }
             return;
         }
 
@@ -207,18 +204,12 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
     private void registrarInstructor(Administrador administrador) {
         System.out.println();
         System.out.println("--- Alta de instructor ---");
-        String nombre = pedirTextoValidado("Nombre completo: ",
-                valor -> controladorUsuarios.validarNombreRegistro(valor));
-        String nick = pedirTextoValidado("Nick: ",
-                valor -> controladorUsuarios.validarNickRegistro(valor));
-        String correo = pedirTextoValidado("Correo electrónico: ",
-                valor -> controladorUsuarios.validarCorreoRegistro(valor));
-        String password = pedirTextoValidado("Contraseña: ",
-                valor -> controladorUsuarios.validarPasswordRegistro(valor));
-        String dni = pedirTextoValidado("DNI: ",
-                valor -> controladorUsuarios.validarDNIRegistro(valor));
-        String iban = pedirTextoValidado("IBAN: ",
-                valor -> controladorUsuarios.validarIBANRegistro(valor));
+        String nombre = pedirNombre();
+        String nick = pedirNick();
+        String correo = pedirCorreo();
+        String password = pedirPassword();
+        String dni = pedirDNI();
+        String iban = pedirIBAN();
 
         boolean registrado = controladorUsuarios.registrarInstructorComoAdministrador(
                 administrador, nombre, nick, correo, password, dni, iban);
@@ -548,49 +539,158 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
 
     private String pedirTexto(String mensaje) {
         System.out.print(mensaje);
-        return scanner.nextLine().trim();
+        String texto = leerLinea();
+        if (texto == null) {
+            throw new IllegalStateException("La entrada de datos se ha cerrado.");
+        }
+
+        return texto.trim();
     }
 
-    private String pedirTextoValidado(String mensaje, ValidadorEntrada validador) {
+    private String pedirNombre() {
         while (true) {
-            String valor = pedirTexto(mensaje);
-            String error = validador.validar(valor);
+            String valor = pedirTexto("Nombre completo: ");
+            String error = controladorUsuarios.validarNombreRegistro(valor);
 
             if (textoVacio(error)) {
                 return valor;
             }
 
-            System.out.println("Dato no válido: " + error);
+            mostrarErrorDato(error);
+        }
+    }
+
+    private String pedirNick() {
+        while (true) {
+            String valor = pedirTexto("Nick: ");
+            String error = controladorUsuarios.validarNickRegistro(valor);
+
+            if (textoVacio(error)) {
+                return valor;
+            }
+
+            mostrarErrorDato(error);
+        }
+    }
+
+    private String pedirCorreo() {
+        while (true) {
+            String valor = pedirTexto("Correo electrónico: ");
+            String error = controladorUsuarios.validarCorreoRegistro(valor);
+
+            if (textoVacio(error)) {
+                return valor;
+            }
+
+            mostrarErrorDato(error);
+        }
+    }
+
+    private String pedirPassword() {
+        while (true) {
+            String valor = pedirTexto("Contraseña: ");
+            String error = controladorUsuarios.validarPasswordRegistro(valor);
+
+            if (textoVacio(error)) {
+                return valor;
+            }
+
+            mostrarErrorDato(error);
+        }
+    }
+
+    private String pedirDNI() {
+        while (true) {
+            String valor = pedirTexto("DNI: ");
+            String error = controladorUsuarios.validarDNIRegistro(valor);
+
+            if (textoVacio(error)) {
+                return valor;
+            }
+
+            mostrarErrorDato(error);
+        }
+    }
+
+    private String pedirTarjeta() {
+        while (true) {
+            String valor = pedirTexto("Tarjeta de crédito/débito: ");
+            String error = controladorUsuarios.validarTarjetaRegistro(valor);
+
+            if (textoVacio(error)) {
+                return valor;
+            }
+
+            mostrarErrorDato(error);
+        }
+    }
+
+    private String pedirIBAN() {
+        while (true) {
+            String valor = pedirTexto("IBAN: ");
+            String error = controladorUsuarios.validarIBANRegistro(valor);
+
+            if (textoVacio(error)) {
+                return valor;
+            }
+
+            mostrarErrorDato(error);
+        }
+    }
+
+    private String pedirDatoEspecifico(String mensaje, String tipoRegistro) {
+        while (true) {
+            String valor = pedirTexto(mensaje);
+            String error = controladorUsuarios.validarDatoEspecificoRegistro(tipoRegistro, valor);
+
+            if (textoVacio(error)) {
+                return valor;
+            }
+
+            mostrarErrorDato(error);
         }
     }
 
     private int pedirNivelPreferencia(DisciplinaArtistica disciplina) {
         while (true) {
-            int nivel = pedirEntero("Nivel en " + disciplina.name().toLowerCase() + " (0-10): ");
+            String texto = pedirTexto("Nivel en " + disciplina.name().toLowerCase() + " (0-10): ");
+            String error = controladorUsuarios.validarNivelPreferencia(texto);
 
-            if (nivel >= 0 && nivel <= 10) {
-                return nivel;
+            if (textoVacio(error)) {
+                return Integer.parseInt(texto.trim());
             }
 
-            System.out.println("Dato no válido: indique un número entre 0 y 10.");
+            mostrarErrorDato(error);
         }
     }
 
-    private int pedirEntero(String mensaje) {
-        System.out.print(mensaje);
-        return leerEntero();
+    private void mostrarErrorDato(String error) {
+        System.out.println("Dato no válido: " + error);
     }
 
     private int leerEntero() {
+        String texto = leerLinea();
+        if (texto == null) {
+            throw new IllegalStateException("La entrada de datos se ha cerrado.");
+        }
+
         try {
-            String texto = scanner.nextLine();
             return Integer.parseInt(texto.trim());
         } catch (NumberFormatException e) {
             return -1;
         }
     }
 
-    private interface ValidadorEntrada {
-        String validar(String valor);
+    private String leerLinea() {
+        try {
+            if (scanner == null || !scanner.hasNextLine()) {
+                return null;
+            }
+
+            return scanner.nextLine();
+        } catch (IllegalStateException | NoSuchElementException e) {
+            return null;
+        }
     }
+
 }

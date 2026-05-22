@@ -1,6 +1,7 @@
 package upmarts.controlador;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -26,24 +27,38 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
 
     private static final String PASSWORD_VALIDO = "Password1234";
     private static final String DNI_VALIDO = "12345678A";
-    private static final String TARJETA_MINIMA = "12345678";
-    private static final String TARJETA_MAXIMA = "1234567890123456789";
+    private static final String TARJETA_VALIDA = "1234567890123456";
+    private static final String TARJETA_VALIDA_ALTERNATIVA = "6543210987654321";
     private static final String IBAN_VALIDO = "ES7620770024003102575766";
-    private static final String ERROR_NOMBRE_VACIO = "El nombre completo no puede estar vacío.";
-    private static final String ERROR_NICK_INVALIDO =
-            "Nick inválido. Debe tener entre 4 y 12 caracteres alfanuméricos y no usar términos conflictivos.";
+    private static final String ERROR_NOMBRE_VACIO = "El nombre completo es obligatorio.";
+    private static final String ERROR_NICK_OBLIGATORIO = "El nick es obligatorio.";
+    private static final String ERROR_NICK_LONGITUD =
+            "Nick no válido. Debe tener entre 4 y 12 caracteres alfanuméricos.";
+    private static final String ERROR_PASSWORD_OBLIGATORIA = "La contraseña es obligatoria.";
     private static final String ERROR_PASSWORD_INVALIDA =
-            "Contraseña inválida. Debe tener al menos 12 caracteres, incluir mayúsculas, minúsculas y números.";
-    private static final String ERROR_CORREO_INVALIDO = "Correo electrónico inválido.";
-    private static final String ERROR_CORREO_DUPLICADO = "Ya existe un usuario registrado con ese correo.";
-    private static final String ERROR_NICK_DUPLICADO = "Ya existe un usuario registrado con ese nick.";
-    private static final String ERROR_DNI_INVALIDO = "DNI inválido. Debe tener 8 dígitos seguidos de una letra.";
-    private static final String ERROR_TARJETA_INVALIDA =
-            "Número de tarjeta inválido. Debe contener entre 8 y 19 dígitos.";
-    private static final String ERROR_MATRICULA_VACIA = "El número de matrícula no puede estar vacío.";
+            "Contraseña no válida. Debe tener al menos 12 caracteres, una mayúscula, una minúscula y un número.";
+    private static final String ERROR_CORREO_OBLIGATORIO = "El correo electrónico es obligatorio.";
+    private static final String ERROR_CORREO_INVALIDO =
+            "Correo electrónico no válido. Use un formato como usuario@dominio.com.";
+    private static final String ERROR_CORREO_DUPLICADO = "El correo electrónico ya está en uso. Use otro.";
+    private static final String ERROR_NICK_DUPLICADO = "El nick ya está en uso. Use otro.";
+    private static final String ERROR_DNI_OBLIGATORIO = "El DNI es obligatorio.";
+    private static final String ERROR_DNI_INVALIDO = "DNI no válido. Debe tener 8 dígitos seguidos de una letra.";
+    private static final String ERROR_TARJETA_OBLIGATORIA = "La tarjeta de crédito/débito es obligatoria.";
+    private static final String ERROR_TARJETA_LONGITUD =
+            "Número de tarjeta no válido. Debe contener exactamente 16 dígitos.";
+    private static final String ERROR_IBAN_OBLIGATORIO = "El IBAN es obligatorio.";
+    private static final String ERROR_MATRICULA_VACIA = "El número de matrícula es obligatorio.";
     private static final String ERROR_VALIDACION_UPM =
             "No se ha podido validar la cuenta UPM. Compruebe correo y contraseña UPM.";
-    private static final String ERROR_ANTIGUEDAD_INVALIDA = "La antigüedad debe ser un número entero válido.";
+    private static final String ERROR_ANTIGUEDAD_OBLIGATORIA = "La antigüedad es obligatoria.";
+    private static final String ERROR_ANTIGUEDAD_NO_NUMERICA =
+            "Antigüedad no válida. Debe ser un número entero mayor o igual que 0.";
+    private static final String ERROR_ANTIGUEDAD_NEGATIVA =
+            "Antigüedad no válida. No puede ser negativa; use un número entero mayor o igual que 0.";
+    private static final String ERROR_CORREO_NO_REGISTRADO =
+            "Correo electrónico no registrado. No se puede iniciar sesión.";
+    private static final String ERROR_PASSWORD_ERRONEA = "Contraseña errónea.";
 
     private PersistenciaEnMemoria persistencia;
     private ValidadorUPMFalso validadorUPM;
@@ -89,23 +104,40 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     @Test
     public void validadoresDeRegistroDevuelvenElErrorDelCampo() {
         assertEquals(ERROR_NOMBRE_VACIO, controlador.validarNombreRegistro("   "));
-        assertEquals(ERROR_NICK_INVALIDO, controlador.validarNickRegistro("abc"));
+        assertEquals(ERROR_NICK_OBLIGATORIO, controlador.validarNickRegistro("   "));
+        assertEquals(ERROR_NICK_LONGITUD, controlador.validarNickRegistro("abc"));
+        assertEquals(ERROR_PASSWORD_OBLIGATORIA, controlador.validarPasswordRegistro(""));
         assertEquals(ERROR_PASSWORD_INVALIDA, controlador.validarPasswordRegistro("Password1"));
+        assertEquals(ERROR_CORREO_OBLIGATORIO, controlador.validarCorreoRegistro(""));
         assertEquals(ERROR_CORREO_INVALIDO, controlador.validarCorreoRegistro("sin-arroba"));
+        assertEquals(ERROR_DNI_OBLIGATORIO, controlador.validarDNIRegistro(""));
         assertEquals(ERROR_DNI_INVALIDO, controlador.validarDNIRegistro("1234567A"));
-        assertEquals(ERROR_TARJETA_INVALIDA, controlador.validarTarjetaRegistro("1234567"));
+        assertEquals(ERROR_TARJETA_OBLIGATORIA, controlador.validarTarjetaRegistro(""));
+        assertEquals(ERROR_TARJETA_LONGITUD, controlador.validarTarjetaRegistro("1234567"));
+        assertNull(controlador.validarTarjetaRegistro(TARJETA_VALIDA));
         assertEquals(ERROR_MATRICULA_VACIA,
                 controlador.validarDatoEspecificoRegistro(ControladorUsuarios.TIPO_ALUMNO_UPM, " "));
-        assertEquals(ERROR_ANTIGUEDAD_INVALIDA,
+        assertEquals(ERROR_ANTIGUEDAD_OBLIGATORIA,
+                controlador.validarDatoEspecificoRegistro(ControladorUsuarios.TIPO_PERSONAL_UPM, " "));
+        assertEquals(ERROR_ANTIGUEDAD_NEGATIVA,
                 controlador.validarDatoEspecificoRegistro(ControladorUsuarios.TIPO_PERSONAL_UPM, "-1"));
+        assertEquals(ERROR_IBAN_OBLIGATORIO, controlador.validarIBANRegistro(""));
         assertNotNull(controlador.validarIBANRegistro("1234"));
+        assertNotNull(controlador.validarIBANRegistro("FR1420041010050500013M02606"));
+        assertNull(controlador.validarIBANRegistro(IBAN_VALIDO));
+        assertNotNull(controlador.validarNivelPreferencia(""));
+        assertNotNull(controlador.validarNivelPreferencia("texto"));
+        assertNotNull(controlador.validarNivelPreferencia("-1"));
+        assertNotNull(controlador.validarNivelPreferencia("11"));
+        assertNull(controlador.validarNivelPreferencia("0"));
+        assertNull(controlador.validarNivelPreferencia("10"));
     }
 
     @Test
     public void validadoresDeRegistroDetectanCorreoYNickDuplicados() {
         assertTrue(controlador.registrarParticipante(
                 "Externo Base", "baseval", "base.validacion@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList()));
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList()));
 
         assertEquals(ERROR_CORREO_DUPLICADO,
                 controlador.validarCorreoRegistro("base.validacion@example.com"));
@@ -113,10 +145,10 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     }
 
     @Test
-    public void registrarParticipanteExternoAceptaValoresLimiteMinimosValidos() {
+    public void registrarParticipanteExternoAceptaTarjetaDeDieciseisDigitos() {
         boolean registrado = controlador.registrarParticipante(
                 "Externo Minimo", "abcd", "externo.min@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList());
 
         assertTrue(registrado);
         assertNull(controlador.getUltimoError());
@@ -126,10 +158,10 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     }
 
     @Test
-    public void registrarParticipanteExternoAceptaValoresLimiteMaximosValidos() {
+    public void registrarParticipanteExternoAceptaNickDeDoceCaracteresConTarjetaValida() {
         boolean registrado = controlador.registrarParticipante(
                 "Externo Maximo", "abcdefghijkl", "externo.max@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MAXIMA, "", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA_ALTERNATIVA, "", Collections.emptyList());
 
         assertTrue(registrado);
         assertNull(controlador.getUltimoError());
@@ -142,7 +174,7 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void registrarParticipanteRechazaNombreVacio() {
         boolean registrado = controlador.registrarParticipante(
                 "", "externo1", "externo1@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList());
 
         assertEquals(false, registrado);
         assertEquals(ERROR_NOMBRE_VACIO, controlador.getUltimoError());
@@ -153,27 +185,27 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void registrarParticipanteRechazaNickDeTresCaracteres() {
         boolean registrado = controlador.registrarParticipante(
                 "Externo Uno", "abc", "nick.corto@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList());
 
         assertEquals(false, registrado);
-        assertEquals(ERROR_NICK_INVALIDO, controlador.getUltimoError());
+        assertEquals(ERROR_NICK_LONGITUD, controlador.getUltimoError());
     }
 
     @Test
     public void registrarParticipanteRechazaNickDeTreceCaracteres() {
         boolean registrado = controlador.registrarParticipante(
                 "Externo Uno", "abcdefghijklm", "nick.largo@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList());
 
         assertEquals(false, registrado);
-        assertEquals(ERROR_NICK_INVALIDO, controlador.getUltimoError());
+        assertEquals(ERROR_NICK_LONGITUD, controlador.getUltimoError());
     }
 
     @Test
     public void registrarParticipanteRechazaPasswordDeOnceCaracteres() {
         boolean registrado = controlador.registrarParticipante(
                 "Externo Uno", "externo2", "password.corta@example.com", "Passwor1234",
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList());
 
         assertEquals(false, registrado);
         assertEquals(ERROR_PASSWORD_INVALIDA, controlador.getUltimoError());
@@ -183,7 +215,7 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void registrarParticipanteRechazaPasswordSinMayusculas() {
         boolean registrado = controlador.registrarParticipante(
                 "Externo Uno", "externo3", "password.formato@example.com", "password1234",
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList());
 
         assertEquals(false, registrado);
         assertEquals(ERROR_PASSWORD_INVALIDA, controlador.getUltimoError());
@@ -193,7 +225,7 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void registrarParticipanteRechazaCorreoSinArroba() {
         boolean registrado = controlador.registrarParticipante(
                 "Externo Uno", "externo4", "correoinvalido", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList());
 
         assertEquals(false, registrado);
         assertEquals(ERROR_CORREO_INVALIDO, controlador.getUltimoError());
@@ -203,11 +235,11 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void registrarParticipanteRechazaCorreoDuplicado() {
         assertTrue(controlador.registrarParticipante(
                 "Externo Base", "externo5", "duplicado@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList()));
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList()));
 
         boolean registrado = controlador.registrarParticipante(
                 "Externo Copia", "externo6", "duplicado@example.com", PASSWORD_VALIDO,
-                "87654321B", TARJETA_MAXIMA, "", Collections.emptyList());
+                "87654321B", TARJETA_VALIDA_ALTERNATIVA, "", Collections.emptyList());
 
         assertEquals(false, registrado);
         assertEquals(ERROR_CORREO_DUPLICADO, controlador.getUltimoError());
@@ -217,11 +249,11 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void registrarParticipanteRechazaNickDuplicado() {
         assertTrue(controlador.registrarParticipante(
                 "Externo Base", "externo7", "nick.base@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList()));
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList()));
 
         boolean registrado = controlador.registrarParticipante(
                 "Externo Copia", "externo7", "nick.copia@example.com", PASSWORD_VALIDO,
-                "87654321B", TARJETA_MAXIMA, "", Collections.emptyList());
+                "87654321B", TARJETA_VALIDA_ALTERNATIVA, "", Collections.emptyList());
 
         assertEquals(false, registrado);
         assertEquals(ERROR_NICK_DUPLICADO, controlador.getUltimoError());
@@ -231,37 +263,37 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void registrarParticipanteRechazaDNIConSieteDigitos() {
         boolean registrado = controlador.registrarParticipante(
                 "Externo Uno", "externo8", "dni.corto@example.com", PASSWORD_VALIDO,
-                "1234567A", TARJETA_MINIMA, "", Collections.emptyList());
+                "1234567A", TARJETA_VALIDA, "", Collections.emptyList());
 
         assertEquals(false, registrado);
         assertEquals(ERROR_DNI_INVALIDO, controlador.getUltimoError());
     }
 
     @Test
-    public void registrarParticipanteRechazaTarjetaDeSieteDigitos() {
+    public void registrarParticipanteRechazaTarjetaDeQuinceDigitos() {
         boolean registrado = controlador.registrarParticipante(
                 "Externo Uno", "externo9", "tarjeta.corta@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, "1234567", "", Collections.emptyList());
+                DNI_VALIDO, "123456789012345", "", Collections.emptyList());
 
         assertEquals(false, registrado);
-        assertEquals(ERROR_TARJETA_INVALIDA, controlador.getUltimoError());
+        assertEquals(ERROR_TARJETA_LONGITUD, controlador.getUltimoError());
     }
 
     @Test
-    public void registrarParticipanteRechazaTarjetaDeVeinteDigitos() {
+    public void registrarParticipanteRechazaTarjetaDeDiecisieteDigitos() {
         boolean registrado = controlador.registrarParticipante(
                 "Externo Uno", "externoa", "tarjeta.larga@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, "12345678901234567890", "", Collections.emptyList());
+                DNI_VALIDO, "12345678901234567", "", Collections.emptyList());
 
         assertEquals(false, registrado);
-        assertEquals(ERROR_TARJETA_INVALIDA, controlador.getUltimoError());
+        assertEquals(ERROR_TARJETA_LONGITUD, controlador.getUltimoError());
     }
 
     @Test
     public void registrarEstudianteUPMValidoCreaEstudiante() {
         boolean registrado = controlador.registrarParticipante(
                 "Alumno Valido", "alumno1", "alumno1@alumnos.upm.es", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "MAT-001", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "MAT-001", Collections.emptyList());
 
         assertTrue(registrado);
         assertNull(controlador.getUltimoError());
@@ -275,7 +307,7 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void registrarEstudianteUPMRechazaMatriculaVacia() {
         boolean registrado = controlador.registrarParticipante(
                 "Alumno Sin Matricula", "alumno2", "alumno2@alumnos.upm.es", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList());
 
         assertEquals(false, registrado);
         assertEquals(ERROR_MATRICULA_VACIA, controlador.getUltimoError());
@@ -287,7 +319,7 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
 
         boolean registrado = controlador.registrarParticipante(
                 "Alumno No Validado", "alumno3", "alumno3@alumnos.upm.es", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "MAT-003", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "MAT-003", Collections.emptyList());
 
         assertEquals(false, registrado);
         assertEquals(ERROR_VALIDACION_UPM, controlador.getUltimoError());
@@ -297,7 +329,7 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void registrarPersonalUPMValidoAceptaAntiguedadCero() {
         boolean registrado = controlador.registrarParticipante(
                 "Personal Valido", "perso1", "perso1@upm.es", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "0", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "0", Collections.emptyList());
 
         assertTrue(registrado);
         assertNull(controlador.getUltimoError());
@@ -311,27 +343,27 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void registrarPersonalUPMRechazaAntiguedadNoNumerica() {
         boolean registrado = controlador.registrarParticipante(
                 "Personal Invalido", "perso2", "perso2@upm.es", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "seis", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "seis", Collections.emptyList());
 
         assertEquals(false, registrado);
-        assertEquals(ERROR_ANTIGUEDAD_INVALIDA, controlador.getUltimoError());
+        assertEquals(ERROR_ANTIGUEDAD_NO_NUMERICA, controlador.getUltimoError());
     }
 
     @Test
     public void registrarPersonalUPMRechazaAntiguedadNegativa() {
         boolean registrado = controlador.registrarParticipante(
                 "Personal Invalido", "perso3", "perso3@upm.es", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "-1", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "-1", Collections.emptyList());
 
         assertEquals(false, registrado);
-        assertEquals(ERROR_ANTIGUEDAD_INVALIDA, controlador.getUltimoError());
+        assertEquals(ERROR_ANTIGUEDAD_NEGATIVA, controlador.getUltimoError());
     }
 
     @Test
     public void loginDevuelveUsuarioConCorreoSinImportarMayusculas() {
         assertTrue(controlador.registrarParticipante(
                 "Externo Login", "externob", "externo.login@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList()));
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList()));
 
         Usuario usuario = controlador.login("  EXTERNO.LOGIN@EXAMPLE.COM ", PASSWORD_VALIDO);
 
@@ -350,12 +382,20 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     }
 
     @Test
+    public void loginDevuelveErrorSiCorreoNoEstaRegistrado() {
+        assertNull(controlador.login("desconocido@example.com", PASSWORD_VALIDO));
+
+        assertEquals(ERROR_CORREO_NO_REGISTRADO, controlador.getUltimoError());
+    }
+
+    @Test
     public void loginDevuelveNullSiLaPasswordEsIncorrecta() {
         assertTrue(controlador.registrarParticipante(
                 "Externo Login", "externoc", "externo.login2@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList()));
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList()));
 
         assertNull(controlador.login("externo.login2@example.com", "Password4321"));
+        assertEquals(ERROR_PASSWORD_ERRONEA, controlador.getUltimoError());
     }
 
     @Test
@@ -392,15 +432,28 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
     public void ultimoErrorSeLimpiaTrasUnRegistroPosteriorCorrecto() {
         boolean primerRegistro = controlador.registrarParticipante(
                 "Externo Uno", "abc", "error.prev@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList());
 
         boolean segundoRegistro = controlador.registrarParticipante(
                 "Externo Dos", "externod", "ok.despues@example.com", PASSWORD_VALIDO,
-                DNI_VALIDO, TARJETA_MINIMA, "", Collections.emptyList());
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList());
 
         assertEquals(false, primerRegistro);
         assertTrue(segundoRegistro);
         assertNull(controlador.getUltimoError());
+    }
+
+    @Test
+    public void registrarParticipanteDevuelveErrorSiNoPuedeGuardar() {
+        ControladorUsuarios controladorConFallo = new ControladorUsuarios(
+                new PersistenciaQueNoGuarda(), new ValidadorUPMFalso(true));
+
+        boolean registrado = controladorConFallo.registrarParticipante(
+                "Externo Error", "errsave", "error.guardado@example.com", PASSWORD_VALIDO,
+                DNI_VALIDO, TARJETA_VALIDA, "", Collections.emptyList());
+
+        assertFalse(registrado);
+        assertEquals("No se pudieron guardar los cambios.", controladorConFallo.getUltimoError());
     }
 
     private Administrador crearAdministrador() {
@@ -436,6 +489,13 @@ public class ControladorUsuariosAltaAccesoCajaNegraTest {
         @Override
         public List<Usuario> leerUsuarios() {
             return new ArrayList<>(usuarios);
+        }
+    }
+
+    private static class PersistenciaQueNoGuarda extends PersistenciaEnMemoria {
+        @Override
+        public void guardarUsuarios(List<Usuario> usuarios) {
+            throw new IllegalStateException("Fallo simulado de guardado.");
         }
     }
 }

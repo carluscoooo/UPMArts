@@ -34,6 +34,8 @@ public class AdaptadorLDAP implements IValidadorUPM {
             return validarSinLibreriaExterna(password);
         } catch (LinkageError e) {
             return validarSinLibreriaExterna(password);
+        } catch (RuntimeException e) {
+            return validarSinLibreriaExterna(password);
         }
     }
 

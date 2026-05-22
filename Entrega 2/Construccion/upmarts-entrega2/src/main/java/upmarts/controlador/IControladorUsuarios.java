@@ -34,6 +34,8 @@ public interface IControladorUsuarios {
 
     String validarIBANRegistro(String iban);
 
+    String validarNivelPreferencia(String nivel);
+
     Usuario login(String correo, String password);
 
     List<Instructor> listarInstructores(Administrador administrador);

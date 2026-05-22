@@ -43,15 +43,15 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
             File fichero = new File(rutaFichero);
             File carpeta = fichero.getParentFile();
 
-            if (carpeta != null && !carpeta.exists()) {
-                carpeta.mkdirs();
+            if (carpeta != null && !carpeta.exists() && !carpeta.mkdirs()) {
+                throw new IllegalStateException("No se pudo crear la carpeta de datos.");
             }
 
-            if (!fichero.exists()) {
-                fichero.createNewFile();
+            if (!fichero.exists() && !fichero.createNewFile()) {
+                throw new IllegalStateException("No se pudo crear el fichero de usuarios.");
             }
         } catch (IOException e) {
-            System.out.println("No se pudo preparar el fichero de usuarios: " + e.getMessage());
+            throw new IllegalStateException("No se pudo preparar el fichero de usuarios.", e);
         }
     }
 
@@ -63,7 +63,7 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
                 writer.newLine();
             }
         } catch (IOException e) {
-            System.out.println("Error guardando usuarios: " + e.getMessage());
+            throw new IllegalStateException("Error guardando usuarios.", e);
         }
     }
 
@@ -76,7 +76,7 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
 
             while ((linea = reader.readLine()) != null) {
                 if (!linea.trim().isEmpty()) {
-                    Usuario usuario = convertirLineaAUsuario(linea);
+                    Usuario usuario = convertirLineaAUsuarioSinRomperLectura(linea);
 
                     if (usuario != null) {
                         usuarios.add(usuario);
@@ -84,10 +84,18 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Error leyendo usuarios: " + e.getMessage());
+            throw new IllegalStateException("Error leyendo usuarios.", e);
         }
 
         return usuarios;
+    }
+
+    private Usuario convertirLineaAUsuarioSinRomperLectura(String linea) {
+        try {
+            return convertirLineaAUsuario(linea);
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     private String convertirUsuarioALinea(Usuario usuario) {

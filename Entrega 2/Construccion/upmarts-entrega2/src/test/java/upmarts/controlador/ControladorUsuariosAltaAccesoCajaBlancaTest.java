@@ -24,11 +24,12 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     private static final String PASSWORD_VALIDO = "Password1234";
     private static final String DNI_VALIDO = "12345678A";
-    private static final String TARJETA_VALIDA = "12345678";
+    private static final String TARJETA_VALIDA = "1234567890123456";
 
     @Test
     public void constructorCreaAdministradorEInstructorSiLaPersistenciaEmpiezaVacia() {
         PersistenciaEnMemoria persistencia = new PersistenciaEnMemoria();
+        new ControladorUsuarios(persistencia, new ValidadorUPMContador(true));
        
         assertEquals(2, persistencia.usuarios.size());
         assertTrue(contieneAdministrador(persistencia.usuarios));
@@ -41,6 +42,7 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
         PersistenciaEnMemoria persistencia = new PersistenciaEnMemoria();
         persistencia.usuarios.add(crearAdministradorInicial());
         persistencia.usuarios.add(crearInstructorInicial());
+        new ControladorUsuarios(persistencia, new ValidadorUPMContador(true));
         
         assertEquals(2, persistencia.usuarios.size());
         assertEquals(0, persistencia.vecesGuardado);
@@ -50,6 +52,7 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
     public void constructorAgregaSoloInstructorCuandoYaExisteAdministrador() {
         PersistenciaEnMemoria persistencia = new PersistenciaEnMemoria();
         persistencia.usuarios.add(crearAdministradorInicial());
+        new ControladorUsuarios(persistencia, new ValidadorUPMContador(true));
 
         assertEquals(2, persistencia.usuarios.size());
         assertTrue(contieneAdministrador(persistencia.usuarios));
