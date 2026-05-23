@@ -1,34 +1,24 @@
 package upmarts.controlador;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 
 import upmarts.integracion.IValidadorUPM;
 import upmarts.modelo.Administrador;
-import upmarts.modelo.EstudianteUPM;
-import upmarts.modelo.Instructor;
-import upmarts.modelo.ParticipanteExterno;
-import upmarts.modelo.PersonalUPM;
 import upmarts.modelo.PreferenciaArtistica;
+import upmarts.modelo.RolUsuario;
 import upmarts.modelo.Usuario;
 import upmarts.persistencia.IAccesoUsuarios;
 
-/**
- * Pruebas de caja blanca para alta y acceso de usuarios.
- *
- * Cubren las ramas principales del ControladorUsuarios a traves de sus metodos
- * publicos. Los metodos privados quedan probados indirectamente.
- */
 public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     private static final String PASSWORD_VALIDO = "Password1234";
@@ -45,37 +35,43 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     @Test
     public void CB01_detectarTipoParticipanteEntraEnRamaCorreoInvalido() {
+        // Prueba CB01
         assertEquals(ControladorUsuarios.TIPO_CORREO_INVALIDO,
                 controlador.detectarTipoParticipantePorCorreo("correo-invalido"));
     }
 
     @Test
     public void CB02_detectarTipoParticipanteEntraEnRamaAlumnoUPM() {
+        // Prueba CB02
         assertEquals(ControladorUsuarios.TIPO_ALUMNO_UPM,
                 controlador.detectarTipoParticipantePorCorreo("alumno@alumnos.upm.es"));
     }
 
     @Test
     public void CB03_detectarTipoParticipanteEntraEnRamaPersonalUPM() {
+        // Prueba CB03
         assertEquals(ControladorUsuarios.TIPO_PERSONAL_UPM,
                 controlador.detectarTipoParticipantePorCorreo("persona@upm.es"));
     }
 
     @Test
     public void CB04_detectarTipoParticipanteCaeEnRamaExterno() {
+        // Prueba CB04
         assertEquals(ControladorUsuarios.TIPO_EXTERNO,
                 controlador.detectarTipoParticipantePorCorreo("externo@gmail.com"));
     }
 
     @Test
-    public void CB05_loginEntraEnRamaInicialConCorreoNulo() {
+    public void CB05_loginEntraEnRamaCorreoInvalidoNuloOVacio() {
+        // Prueba CB05
         assertNull(controlador.login(null, PASSWORD_VALIDO));
+        assertNull(controlador.login("   ", PASSWORD_VALIDO));
     }
 
     @Test
     public void CB06_loginRecorreUsuariosYEncuentraCorreoYPasswordCorrectos() {
-        assertTrue(registrarParticipante(
-                "Usuario Login", "logb1", "loginb1@gmail.com", ""));
+        // Prueba CB06
+        assertTrue(registrarParticipante("Usuario Login", "logb1", "loginb1@gmail.com", ""));
 
         Usuario usuario = controlador.login("loginb1@gmail.com", PASSWORD_VALIDO);
 
@@ -85,13 +81,14 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     @Test
     public void CB07_loginRecorreUsuariosYNoEncuentraCorreo() {
+        // Prueba CB07
         assertNull(controlador.login("correo-no-registrado@gmail.com", PASSWORD_VALIDO));
     }
 
     @Test
     public void CB08_loginEncuentraCorreoPeroPasswordNoCoincide() {
-        assertTrue(registrarParticipante(
-                "Usuario Login", "logb2", "loginb2@gmail.com", ""));
+        // Prueba CB08
+        assertTrue(registrarParticipante("Usuario Login", "logb2", "loginb2@gmail.com", ""));
 
         Usuario usuario = controlador.login("loginb2@gmail.com", "PasswordIncorrecta123");
 
@@ -100,24 +97,25 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     @Test
     public void CB09_registrarParticipanteFallaEnValidacionDeNombre() {
-        boolean resultado = registrarParticipante(
-                "   ", "extb1", "externob1@gmail.com", "");
+        // Prueba CB09
+        boolean resultado = registrarParticipante("   ", "exb01", "externob1@gmail.com", "");
 
         assertFalse(resultado);
     }
 
     @Test
     public void CB10_registrarParticipanteFallaEnValidacionDeNick() {
-        boolean resultado = registrarParticipante(
-                "Usuario", "abc", "externob2@gmail.com", "");
+        // Prueba CB10
+        boolean resultado = registrarParticipante("Usuario", "abc", "externob2@gmail.com", "");
 
         assertFalse(resultado);
     }
 
     @Test
     public void CB11_registrarParticipanteFallaEnValidacionDePassword() {
+        // Prueba CB11
         boolean resultado = controlador.registrarParticipante(
-                "Usuario", "extb3", "externob3@gmail.com", "password1234",
+                "Usuario", "exb02", "externob3@gmail.com", "password1234",
                 DNI_VALIDO, TARJETA_VALIDA, "", sinPreferencias());
 
         assertFalse(resultado);
@@ -125,19 +123,19 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     @Test
     public void CB12_registrarParticipanteFallaEnValidacionDeCorreo() {
-        boolean resultado = registrarParticipante(
-                "Usuario", "extb4", "correo-invalido", "");
+        // Prueba CB12
+        boolean resultado = registrarParticipante("Usuario", "exb03", "correo-invalido", "");
 
         assertFalse(resultado);
     }
 
     @Test
     public void CB13_registrarParticipanteEntraEnRamaCorreoDuplicado() {
-        assertTrue(registrarParticipante(
-                "Usuario Uno", "extb5", "duplicadob@gmail.com", ""));
+        // Prueba CB13
+        assertTrue(registrarParticipante("Usuario Uno", "exb04", "duplicadob@gmail.com", ""));
 
         boolean resultado = controlador.registrarParticipante(
-                "Usuario Dos", "extb6", "duplicadob@gmail.com", PASSWORD_VALIDO,
+                "Usuario Dos", "exb05", "duplicadob@gmail.com", PASSWORD_VALIDO,
                 "87654321B", TARJETA_VALIDA, "", sinPreferencias());
 
         assertFalse(resultado);
@@ -145,11 +143,11 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     @Test
     public void CB14_registrarParticipanteEntraEnRamaNickDuplicado() {
-        assertTrue(registrarParticipante(
-                "Usuario Uno", "extb7", "externob7@gmail.com", ""));
+        // Prueba CB14
+        assertTrue(registrarParticipante("Usuario Uno", "exb06", "externob7@gmail.com", ""));
 
         boolean resultado = controlador.registrarParticipante(
-                "Usuario Dos", "extb7", "externob8@gmail.com", PASSWORD_VALIDO,
+                "Usuario Dos", "exb06", "externob8@gmail.com", PASSWORD_VALIDO,
                 "87654321B", TARJETA_VALIDA, "", sinPreferencias());
 
         assertFalse(resultado);
@@ -157,8 +155,9 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     @Test
     public void CB15_registrarParticipanteFallaEnValidacionDeDNI() {
+        // Prueba CB15
         boolean resultado = controlador.registrarParticipante(
-                "Usuario", "extb8", "externob9@gmail.com", PASSWORD_VALIDO,
+                "Usuario", "exb07", "externob9@gmail.com", PASSWORD_VALIDO,
                 "1234567A", TARJETA_VALIDA, "", sinPreferencias());
 
         assertFalse(resultado);
@@ -166,8 +165,9 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     @Test
     public void CB16_registrarParticipanteFallaEnValidacionDeTarjeta() {
+        // Prueba CB16
         boolean resultado = controlador.registrarParticipante(
-                "Usuario", "extb9", "externob10@gmail.com", PASSWORD_VALIDO,
+                "Usuario", "exb08", "externob10@gmail.com", PASSWORD_VALIDO,
                 DNI_VALIDO, "1234567", "", sinPreferencias());
 
         assertFalse(resultado);
@@ -175,103 +175,231 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
 
     @Test
     public void CB17_registrarParticipanteEntraEnCaminoDeExitoExterno() {
-        boolean resultado = registrarParticipante(
-                "Usuario Externo", "extb10", "externob11@gmail.com", "");
+        // Prueba CB17
+        boolean resultado = registrarParticipante("Usuario Externo", "exb09", "externob11@gmail.com", "");
 
         Usuario usuario = controlador.login("externob11@gmail.com", PASSWORD_VALIDO);
 
         assertTrue(resultado);
         assertNotNull(usuario);
-        assertTrue(usuario instanceof ParticipanteExterno);
+        assertEquals(RolUsuario.PARTICIPANTE_EXTERNO, usuario.getRol());
     }
 
     @Test
     public void CB18_registrarParticipanteEntraEnCaminoAlumnoYFallaPorMatriculaVacia() {
-        boolean resultado = registrarParticipante(
-                "Alumno UPM", "alumb1", "alumnob1@alumnos.upm.es", "   ");
+        // Prueba CB18
+        boolean resultado = registrarParticipante("Alumno UPM", "alub1", "alumnob1@alumnos.upm.es", "   ");
 
         assertFalse(resultado);
     }
 
     @Test
     public void CB19_registrarParticipanteEntraEnCaminoDeExitoAlumnoUPM() {
-        boolean resultado = registrarParticipante(
-                "Alumno UPM", "alumb2", "alumnob2@alumnos.upm.es", "M002");
+        // Prueba CB19
+        boolean resultado = registrarParticipante("Alumno UPM", "alub2", "alumnob2@alumnos.upm.es", "M002");
 
         Usuario usuario = controlador.login("alumnob2@alumnos.upm.es", PASSWORD_VALIDO);
 
         assertTrue(resultado);
         assertNotNull(usuario);
-        assertTrue(usuario instanceof EstudianteUPM);
+        assertEquals(RolUsuario.ESTUDIANTE_UPM, usuario.getRol());
     }
 
     @Test
     public void CB20_registrarParticipanteEntraEnCaminoPersonalYFallaPorAntiguedadNoNumerica() {
-        boolean resultado = registrarParticipante(
-                "Personal UPM", "persb1", "personalb1@upm.es", "tres");
+        // Prueba CB20
+        boolean resultado = registrarParticipante("Personal UPM", "perb1", "personalb1@upm.es", "tres");
 
         assertFalse(resultado);
     }
 
     @Test
     public void CB21_registrarParticipanteEntraEnCaminoDeExitoPersonalUPM() {
-        boolean resultado = registrarParticipante(
-                "Personal UPM", "persb2", "personalb2@upm.es", "3");
+        // Prueba CB21
+        boolean resultado = registrarParticipante("Personal UPM", "perb2", "personalb2@upm.es", "3");
 
         Usuario usuario = controlador.login("personalb2@upm.es", PASSWORD_VALIDO);
 
         assertTrue(resultado);
         assertNotNull(usuario);
-        assertTrue(usuario instanceof PersonalUPM);
+        assertEquals(RolUsuario.PERSONAL_UPM, usuario.getRol());
     }
 
     @Test
     public void CB22_registrarInstructorEntraEnRamaAdministradorNulo() {
+        // Prueba CB22
         boolean resultado = controlador.registrarInstructorComoAdministrador(
-                null, "Instructor", "instb1", "instb1@upm.es", PASSWORD_VALIDO,
-                DNI_VALIDO, IBAN_VALIDO);
+                null, "Instructor", "inb01", "instb1@upm.es",
+                PASSWORD_VALIDO, DNI_VALIDO, IBAN_VALIDO);
 
         assertFalse(resultado);
     }
 
     @Test
     public void CB23_registrarInstructorFallaEnValidacionDeDatosComunes() {
+        // Prueba CB23
         boolean resultado = controlador.registrarInstructorComoAdministrador(
-                crearAdministrador(), "   ", "instb2", "instb2@upm.es", PASSWORD_VALIDO,
-                DNI_VALIDO, IBAN_VALIDO);
+                crearAdministrador(), "   ", "inb02", "instb2@upm.es",
+                PASSWORD_VALIDO, DNI_VALIDO, IBAN_VALIDO);
 
         assertFalse(resultado);
     }
 
     @Test
     public void CB24_registrarInstructorFallaEnValidacionDeDNI() {
+        // Prueba CB24
         boolean resultado = controlador.registrarInstructorComoAdministrador(
-                crearAdministrador(), "Instructor", "instb3", "instb3@upm.es", PASSWORD_VALIDO,
-                "1234567A", IBAN_VALIDO);
+                crearAdministrador(), "Instructor", "inb03", "instb3@upm.es",
+                PASSWORD_VALIDO, "1234567A", IBAN_VALIDO);
 
         assertFalse(resultado);
     }
 
     @Test
     public void CB25_registrarInstructorFallaEnValidacionDeIBAN() {
+        // Prueba CB25
         boolean resultado = controlador.registrarInstructorComoAdministrador(
-                crearAdministrador(), "Instructor", "instb4", "instb4@upm.es", PASSWORD_VALIDO,
-                DNI_VALIDO, "1234");
+                crearAdministrador(), "Instructor", "inb04", "instb4@upm.es",
+                PASSWORD_VALIDO, DNI_VALIDO, "1234");
 
         assertFalse(resultado);
     }
 
     @Test
     public void CB26_registrarInstructorEntraEnCaminoDeExito() {
+        // Prueba CB26
         boolean resultado = controlador.registrarInstructorComoAdministrador(
-                crearAdministrador(), "Instructor", "instb5", "instb5@upm.es", PASSWORD_VALIDO,
-                DNI_VALIDO, IBAN_VALIDO);
+                crearAdministrador(), "Instructor", "inb05", "instb5@upm.es",
+                PASSWORD_VALIDO, DNI_VALIDO, IBAN_VALIDO);
 
         Usuario usuario = controlador.login("instb5@upm.es", PASSWORD_VALIDO);
 
         assertTrue(resultado);
         assertNotNull(usuario);
-        assertTrue(usuario instanceof Instructor);
+        assertEquals(RolUsuario.INSTRUCTOR, usuario.getRol());
+    }
+
+    @Test
+    public void CB27_loginEntraEnRamaPasswordNulaOVaciaConCorreoValido() {
+        // Prueba CB27
+        assertTrue(registrarParticipante("Usuario Login", "logb3", "loginb3@gmail.com", ""));
+
+        assertNull(controlador.login("loginb3@gmail.com", null));
+        assertNull(controlador.login("loginb3@gmail.com", "   "));
+    }
+
+    @Test
+    public void CB28_registrarParticipanteAlumnoFallaPorValidadorUPM() {
+        // Prueba CB28
+        ControladorUsuarios controladorUPM = new ControladorUsuarios(
+                new PersistenciaEnMemoria(), new ValidadorUPMDePruebaRechaza());
+
+        boolean resultado = controladorUPM.registrarParticipante(
+                "Alumno UPM", "alub3", "alumnob3@alumnos.upm.es", PASSWORD_VALIDO,
+                DNI_VALIDO, TARJETA_VALIDA, "M003", sinPreferencias());
+
+        assertFalse(resultado);
+    }
+
+    @Test
+    public void CB29_registrarParticipantePersonalFallaPorValidadorUPM() {
+        // Prueba CB29
+        ControladorUsuarios controladorUPM = new ControladorUsuarios(
+                new PersistenciaEnMemoria(), new ValidadorUPMDePruebaRechaza());
+
+        boolean resultado = controladorUPM.registrarParticipante(
+                "Personal UPM", "perb3", "personalb3@upm.es", PASSWORD_VALIDO,
+                DNI_VALIDO, TARJETA_VALIDA, "3", sinPreferencias());
+
+        assertFalse(resultado);
+    }
+
+    @Test
+    public void CB30_registrarParticipanteFallaAlLeerPersistencia() {
+        // Prueba CB30
+        ControladorUsuarios controladorConFallo = new ControladorUsuarios(
+                new PersistenciaFallaEnLecturaTrasConstructor(), new ValidadorUPMDePruebaAcepta());
+
+        boolean resultado = controladorConFallo.registrarParticipante(
+                "Usuario", "exb10", "externob12@gmail.com", PASSWORD_VALIDO,
+                DNI_VALIDO, TARJETA_VALIDA, "", sinPreferencias());
+
+        assertFalse(resultado);
+    }
+
+    @Test
+    public void CB31_registrarParticipanteFallaAlGuardarPersistencia() {
+        // Prueba CB31
+        ControladorUsuarios controladorConFallo = new ControladorUsuarios(
+                new PersistenciaFallaEnGuardadoTrasConstructor(), new ValidadorUPMDePruebaAcepta());
+
+        boolean resultado = controladorConFallo.registrarParticipante(
+                "Usuario", "exb11", "externob13@gmail.com", PASSWORD_VALIDO,
+                DNI_VALIDO, TARJETA_VALIDA, "", sinPreferencias());
+
+        assertFalse(resultado);
+    }
+
+    @Test
+    public void CB32_registrarInstructorFallaAlLeerPersistencia() {
+        // Prueba CB32
+        ControladorUsuarios controladorConFallo = new ControladorUsuarios(
+                new PersistenciaFallaEnLecturaTrasConstructor(), new ValidadorUPMDePruebaAcepta());
+
+        boolean resultado = controladorConFallo.registrarInstructorComoAdministrador(
+                crearAdministrador(), "Instructor", "inb06", "instb6@upm.es",
+                PASSWORD_VALIDO, DNI_VALIDO, IBAN_VALIDO);
+
+        assertFalse(resultado);
+    }
+
+    @Test
+    public void CB33_registrarInstructorFallaAlGuardarPersistencia() {
+        // Prueba CB33
+        ControladorUsuarios controladorConFallo = new ControladorUsuarios(
+                new PersistenciaFallaEnGuardadoTrasConstructor(), new ValidadorUPMDePruebaAcepta());
+
+        boolean resultado = controladorConFallo.registrarInstructorComoAdministrador(
+                crearAdministrador(), "Instructor", "inb07", "instb7@upm.es",
+                PASSWORD_VALIDO, DNI_VALIDO, IBAN_VALIDO);
+
+        assertFalse(resultado);
+    }
+
+    @Test
+    public void CB34_validarNivelPreferenciaEntraEnRamaValorCero() {
+        // Prueba CB34
+        assertNull(controlador.validarNivelPreferencia("0"));
+    }
+
+    @Test
+    public void CB35_validarNivelPreferenciaEntraEnRamaValorEntreUnoYDiez() {
+        // Prueba CB35
+        assertNull(controlador.validarNivelPreferencia("5"));
+    }
+
+    @Test
+    public void CB36_validarNivelPreferenciaEntraEnRamaNivelVacio() {
+        // Prueba CB36
+        assertNotNull(controlador.validarNivelPreferencia("   "));
+    }
+
+    @Test
+    public void CB37_validarNivelPreferenciaEntraEnRamaMenorQueCero() {
+        // Prueba CB37
+        assertNotNull(controlador.validarNivelPreferencia("-1"));
+    }
+
+    @Test
+    public void CB38_validarNivelPreferenciaEntraEnRamaMayorQueDiez() {
+        // Prueba CB38
+        assertNotNull(controlador.validarNivelPreferencia("11"));
+    }
+
+    @Test
+    public void CB39_validarNivelPreferenciaEntraEnRamaNoNumerico() {
+        // Prueba CB39
+        assertNotNull(controlador.validarNivelPreferencia("alto"));
     }
 
     private boolean registrarParticipante(String nombre, String nick, String correo, String datoEspecifico) {
@@ -299,17 +427,56 @@ public class ControladorUsuariosAltaAccesoCajaBlancaTest {
         }
     }
 
+    private static class ValidadorUPMDePruebaRechaza implements IValidadorUPM {
+        @Override
+        public boolean verificarCredencialesUPM(String correo, String password) {
+            return false;
+        }
+    }
+
     private static class PersistenciaEnMemoria implements IAccesoUsuarios {
-        private List<Usuario> usuarios = new ArrayList<Usuario>();
+        private List<Usuario> usuarios = new ArrayList<>();
 
         @Override
         public void guardarUsuarios(List<Usuario> usuarios) {
-            this.usuarios = new ArrayList<Usuario>(usuarios);
+            this.usuarios = new ArrayList<>(usuarios);
         }
 
         @Override
         public List<Usuario> leerUsuarios() {
-            return new ArrayList<Usuario>(usuarios);
+            return new ArrayList<>(usuarios);
+        }
+    }
+
+    private static class PersistenciaFallaEnLecturaTrasConstructor extends PersistenciaEnMemoria {
+        private int lecturas;
+
+        @Override
+        public List<Usuario> leerUsuarios() {
+            lecturas++;
+
+            // La primera lectura se deja pasar porque la usa el constructor del controlador.
+            if (lecturas > 1) {
+                throw new RuntimeException("Error de lectura de prueba.");
+            }
+
+            return super.leerUsuarios();
+        }
+    }
+
+    private static class PersistenciaFallaEnGuardadoTrasConstructor extends PersistenciaEnMemoria {
+        private int guardados;
+
+        @Override
+        public void guardarUsuarios(List<Usuario> usuarios) {
+            guardados++;
+
+            // El primer guardado puede crear usuarios iniciales; el fallo se fuerza en la operacion probada.
+            if (guardados > 1) {
+                throw new RuntimeException("Error de guardado de prueba.");
+            }
+
+            super.guardarUsuarios(usuarios);
         }
     }
 }

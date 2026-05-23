@@ -1,32 +1,33 @@
-# UPMArts - Proyecto de software
+# UPMArts - Construcción
 
-Aplicación de consola en Java desarrollada para la segunda entrega de UPMArts. Esta parte del repositorio contiene el proyecto Maven ejecutable, las clases de dominio, la persistencia en fichero y las pruebas unitarias.
+Este directorio contiene el proyecto Java de la segunda entrega de UPMArts. La aplicación se ejecuta por consola y desarrolla la parte de gestión de usuarios del centro cultural.
 
-El objetivo de esta aplicación es gestionar el alta, acceso y administración básica de usuarios del centro cultural UPMArts.
+El proyecto está preparado como proyecto Maven y utiliza persistencia en fichero para guardar los usuarios registrados.
 
-## Funcionalidades
+## Funcionalidades implementadas
 
-- Registro de participantes externos.
-- Registro de estudiantes UPM y personal UPM/PDI/PAS.
-- Registro de instructores desde el menú de administración.
-- Inicio de sesión con mensajes de error específicos.
-- Listado de participantes e instructores desde administrador.
+- Alta de participantes externos.
+- Alta de estudiantes UPM.
+- Alta de personal UPM/PDI/PAS.
+- Alta de instructores desde el menú de administrador.
+- Inicio de sesión con distinción entre correo no registrado y contraseña incorrecta.
+- Listado de participantes e instructores desde administración.
 - Baja de usuarios.
-- Consulta y modificación de datos personales.
+- Modificación de datos de participante.
 - Consulta y modificación de preferencias artísticas.
-- Persistencia de usuarios en fichero plano.
+- Validación de cuentas UPM mediante la librería externa indicada para la asignatura.
 
 ## Requisitos
 
 - Java 8 o superior.
 - Maven 3.x.
-- El fichero `externals-2.0.jar` en la raíz de este proyecto.
+- `externals-2.0.jar` en la raíz de este proyecto.
 
-La dependencia externa se declara en el `pom.xml` con `scope` `system`, tal como se indica en la configuración de la asignatura.
+El fichero `externals-2.0.jar` es necesario porque el `pom.xml` lo referencia como dependencia de tipo `system`.
 
-## Compilación y ejecución
+## Compilación, pruebas y ejecución
 
-Desde esta carpeta:
+Para compilar y ejecutar las pruebas:
 
 ```bash
 mvn clean test
@@ -35,10 +36,10 @@ mvn clean test
 Para generar el JAR:
 
 ```bash
-mvn clean package
+mvn package
 ```
 
-Para ejecutar la aplicación empaquetada:
+Para lanzar la aplicación empaquetada:
 
 ```bash
 java -jar target/upmarts-1.0-SNAPSHOT.jar
@@ -50,11 +51,11 @@ La clase principal es:
 upmarts.App
 ```
 
-Si se ejecuta desde VS Code o Eclipse sin Maven, hay que asegurarse de que el classpath incluya `externals-2.0.jar`. Aun así, la forma más fiable de compilar y empaquetar es Maven.
+Si se ejecuta desde VS Code o Eclipse sin usar Maven, el classpath debe incluir también `externals-2.0.jar`. Para evitar problemas de configuración, se recomienda compilar y empaquetar con Maven.
 
 ## Usuarios iniciales
 
-La aplicación crea usuarios iniciales si no existen:
+Al iniciar el controlador se crean, si no existen, dos usuarios iniciales:
 
 - Administrador:
   - correo: `admin@upm.es`
@@ -63,29 +64,29 @@ La aplicación crea usuarios iniciales si no existen:
   - correo: `instructor@upm.es`
   - contraseña: `Instructor123A`
 
-Los usuarios se guardan en:
+Los usuarios se almacenan en:
 
 ```text
 data/usuarios.txt
 ```
 
-Las contraseñas se almacenan cifradas con SHA-256, no en texto plano.
+Las contraseñas no se guardan en claro; se almacena su hash SHA-256.
 
 ## Estructura del código
 
-- `upmarts.App`: punto de entrada de la aplicación y control final de errores.
-- `upmarts.vista`: menús de consola, lectura de datos y mensajes al usuario.
-- `upmarts.controlador`: coordinación de los casos de uso de usuarios.
-- `upmarts.validacion`: validaciones de formato y reglas simples de entrada.
+- `upmarts.App`: punto de entrada y control final de errores.
+- `upmarts.vista`: menús de consola y lectura de datos.
+- `upmarts.controlador`: coordinación de las operaciones de usuario.
+- `upmarts.validacion`: validaciones de formato de los datos introducidos.
 - `upmarts.modelo`: clases del dominio y enumerados.
 - `upmarts.persistencia`: lectura y escritura de usuarios en fichero.
-- `upmarts.integracion`: adaptación de la librería externa de validación UPM.
+- `upmarts.integracion`: adaptación de la validación externa UPM.
 
-La vista no contiene reglas de negocio. Recoge datos y llama al controlador. El controlador decide el flujo de cada operación y delega las validaciones de formato en `ValidadorDatosUsuario`.
+La vista se limita a pedir datos y mostrar resultados. Las reglas de negocio se concentran en el controlador, y las reglas de formato se delegan en `ValidadorDatosUsuario`.
 
 ## Modelo de usuarios
 
-La jerarquía principal es:
+La jerarquía usada en el modelo es:
 
 ```text
 Usuario
@@ -98,7 +99,7 @@ Usuario
             └── PersonalUPM
 ```
 
-Los roles se identifican mediante el enum `RolUsuario`:
+Los tipos de usuario se identifican con el enum `RolUsuario`:
 
 - `ADMINISTRADOR`
 - `INSTRUCTOR`
@@ -106,82 +107,74 @@ Los roles se identifican mediante el enum `RolUsuario`:
 - `ESTUDIANTE_UPM`
 - `PERSONAL_UPM`
 
-Esta identificación evita depender de comprobaciones con `instanceof` para saber el tipo de usuario.
-
 ## Validaciones principales
 
-Las reglas de formato están centralizadas en:
+Las validaciones de formato se encuentran en:
 
 ```text
 src/main/java/upmarts/validacion/ValidadorDatosUsuario.java
 ```
 
-Reglas más importantes:
+Reglas principales:
 
-- Nick obligatorio, alfanumérico, de 4 a 12 caracteres y sin términos conflictivos.
+- Nick obligatorio, alfanumérico, de 4 a 12 caracteres, sin términos conflictivos y no repetido.
 - Nombre completo obligatorio.
 - Correo obligatorio, con formato válido y no repetido.
-- Contraseña obligatoria, con al menos 12 caracteres, una mayúscula, una minúscula y un número.
+- Contraseña obligatoria con al menos 12 caracteres, una mayúscula, una minúscula y un número.
 - DNI obligatorio con 8 dígitos y una letra.
 - Tarjeta obligatoria con exactamente 16 dígitos.
 - IBAN obligatorio con formato español: `ES` seguido de 22 dígitos.
 - Matrícula obligatoria para estudiantes UPM.
 - Antigüedad obligatoria para personal UPM/PDI/PAS, numérica y mayor o igual que 0.
-- Preferencias artísticas de `MUSICA`, `PINTURA` y `TEATRO`, con nivel de 0 a 10.
+- Preferencias artísticas de música, pintura y teatro, con nivel de 0 a 10. El valor 0 indica que no se registra esa disciplina.
 
-El controlador mantiene las comprobaciones que dependen del estado del sistema:
-
-- nick ya usado;
-- correo ya registrado;
-- correo no registrado en inicio de sesión;
-- contraseña incorrecta;
-- permisos de administrador;
-- validación externa de cuentas UPM;
-- errores de lectura o guardado.
+Las comprobaciones que dependen del estado del sistema se realizan desde el controlador: nick duplicado, correo duplicado, correo no registrado en inicio de sesión, contraseña errónea, permisos de administrador, validación UPM y errores de persistencia.
 
 ## Validación UPM
 
-La integración con la librería externa está encapsulada en:
+La validación externa está encapsulada en:
 
 ```text
 src/main/java/upmarts/integracion/AdaptadorLDAP.java
 ```
 
-Se comprueba que la cuenta exista y que el rol devuelto por el sistema externo encaje con el correo:
+Para usuarios UPM se comprueba que la cuenta sea válida y que el rol encaje con el dominio del correo:
 
 - `@alumnos.upm.es`: estudiante UPM.
 - `@upm.es`: personal UPM/PDI/PAS.
 
-Si la librería externa no está disponible en tiempo de ejecución, el adaptador aplica una validación mínima de respaldo para facilitar las pruebas locales.
+Si el correo no pertenece a un dominio UPM, el usuario se registra como participante externo y no se aplica esta validación.
 
 ## Persistencia
 
-La clase responsable de guardar y cargar usuarios es:
+La persistencia se gestiona en:
 
 ```text
 src/main/java/upmarts/persistencia/GestorFicheroUsuarios.java
 ```
 
-El formato general de cada línea es:
+El formato general de cada línea de `data/usuarios.txt` es:
 
 ```text
 TIPO;nick;nombre;correo;passwordCifrada;camposPropiosDelRol
 ```
 
-Si una línea del fichero está corrupta, se ignora para no impedir la carga del resto de usuarios.
+Si una línea del fichero no puede convertirse en usuario, se omite para permitir que el resto de datos se carguen correctamente.
 
 ## Pruebas
 
-Las pruebas se encuentran en:
+Las pruebas unitarias están en:
 
 ```text
 src/test/java/upmarts/controlador
 ```
 
-Clases principales:
+Clases incluidas:
 
-- `ControladorUsuariosAltaAccesoCajaNegraTest`
-- `ControladorUsuariosAltaAccesoCajaBlancaTest`
+- `ControladorUsuariosAltaAccesoCajaNegraTest`: pruebas de caja negra.
+- `ControladorUsuariosAltaAccesoCajaBlancaTest`: pruebas de caja blanca.
+
+Actualmente se prueban altas válidas e inválidas, duplicados, inicio de sesión, validación UPM, validaciones de preferencias y errores de persistencia simulados.
 
 Para ejecutarlas:
 
@@ -189,22 +182,14 @@ Para ejecutarlas:
 mvn test
 ```
 
-Cubren altas válidas e inválidas, duplicados, inicio de sesión, usuarios UPM, persistencia simulada y ramas principales del controlador.
+## Archivos importantes
 
-## Avisos conocidos
+- `pom.xml`: configuración Maven.
+- `externals-2.0.jar`: librería externa indicada para la asignatura.
+- `data/usuarios.txt`: fichero de usuarios persistidos.
+- `src/main/resources/terminos_conflictivos.txt`: lista por defecto de términos no permitidos para el nick.
+- `target/`: carpeta generada al compilar. No forma parte del código fuente.
 
-Durante la ejecución de Maven puede aparecer un aviso sobre `systemPath`, porque `externals-2.0.jar` se referencia desde el propio proyecto. Es un aviso esperado por la configuración indicada para la asignatura y no impide compilar, probar ni ejecutar.
+## Nota sobre Maven
 
-La carpeta `target/` se genera automáticamente al compilar y no debe entregarse como código fuente.
-
-## Antes de entregar
-
-Comprobaciones recomendadas:
-
-```bash
-mvn clean test
-mvn package
-java -jar target/upmarts-1.0-SNAPSHOT.jar
-```
-
-También conviene revisar que `data/usuarios.txt` no contenga datos de pruebas manuales que no deban entregarse.
+Maven puede mostrar un aviso por el uso de `systemPath` en la dependencia externa. El aviso no impide compilar, ejecutar pruebas ni generar el JAR.

@@ -1,10 +1,10 @@
-# Proyecto UPMArts
+# UPMArts
 
-Repositorio del proyecto UPMArts, realizado para la asignatura de Fundamentos de la Ingeniería del Software por el grupo **CITIM21-3-UPMArts**.
+Repositorio del proyecto UPMArts, realizado por el grupo **CITIM21-3-UPMArts** para la asignatura de Fundamentos de la Ingeniería del Software.
 
-UPMArts es una aplicación pensada para apoyar la gestión del Centro de Creación Cultural de la Universidad Politécnica de Madrid. El sistema contempla usuarios de distintos tipos, actividades culturales, espacios, recursos, cursos, sesiones libres y asociaciones culturales.
+UPMArts plantea un sistema de apoyo a la gestión del Centro de Creación Cultural de la Universidad Politécnica de Madrid. El proyecto contempla el registro y acceso de usuarios, la organización de actividades culturales, la gestión de espacios y recursos, y la participación de usuarios externos y miembros de la comunidad universitaria.
 
-## Equipo
+## Integrantes
 
 - FILALI BELHADJ CHAQROUNE, YASSIR
 - GOMEZ MORENO, CARLOS
@@ -12,13 +12,15 @@ UPMArts es una aplicación pensada para apoyar la gestión del Centro de Creaci�
 - PANIS MARAMBA, TRISHALYN
 - ZHANG, JIONGHAO
 
-## Enlace de gestión
+## Seguimiento del proyecto
 
-La información de seguimiento del proyecto se encuentra en Redmine:
+La planificación, las tareas y la información de seguimiento del trabajo se encuentran en Redmine:
 
 [Proyecto CITIM21-3-UPMArts en Redmine](https://fis.etsisi.upm.es/projects/citim21-3-upmarts)
 
-## Estructura del repositorio
+## Contenido del repositorio
+
+El repositorio está organizado por entregas:
 
 ```text
 citim21-3-upmarts/
@@ -33,18 +35,18 @@ citim21-3-upmarts/
 
 ## Entrega 1
 
-La primera entrega recoge el trabajo de análisis inicial del sistema.
+La primera entrega recoge el análisis inicial del sistema.
 
-Contenido principal:
+Incluye:
 
-- Prototipo visual de UPMArts en PDF.
-- Proyecto de modelado en StarUML.
-- Diagramas de casos de uso.
-- Diagrama de clases de análisis.
-- Descripciones extendidas de casos de uso.
+- prototipo visual de UPMArts;
+- proyecto de modelado en StarUML;
+- diagramas de casos de uso;
+- diagrama de clases de análisis;
+- descripciones extendidas de casos de uso;
 - PDF recopilatorio con los diagramas principales.
 
-Archivos y carpetas más importantes:
+Archivos principales:
 
 - `Entrega 1/Prototipo/UPM-Arts.pdf`
 - `Entrega 1/Modelado/ StarUML/CITIM21-3-UPMArts.uml`
@@ -53,94 +55,84 @@ Archivos y carpetas más importantes:
 
 ## Entrega 2
 
-La segunda entrega contiene el diseño, la construcción del proyecto Java y la documentación de pruebas.
+La segunda entrega contiene el diseño actualizado, la implementación y la documentación de pruebas.
 
-Contenido principal:
+Incluye:
 
-- Diseño actualizado del sistema.
-- Proyecto Java ejecutable con Maven.
-- Pruebas unitarias del controlador de usuarios.
-- Documento de pruebas unitarias.
-- Documento de pruebas de validación.
+- modelo de diseño en StarUML;
+- proyecto Java ejecutable con Maven;
+- pruebas unitarias del controlador de usuarios;
+- documento de pruebas unitarias;
+- documento de pruebas de validación.
 
-Archivos y carpetas más importantes:
+Archivos principales:
 
 - `Entrega 2/Diseño/CITIM21-3-UPMArts.uml`
 - `Entrega 2/Construccion/upmarts-entrega2/`
 - `Entrega 2/Pruebas/Pruebas Unitarias.docx`
 - `Entrega 2/Pruebas/Pruebas de Validación.docx`
 
-## Proyecto de software
+## Proyecto Java
 
-El proyecto ejecutable está en:
+El código ejecutable se encuentra en:
 
 ```text
 Entrega 2/Construccion/upmarts-entrega2
 ```
 
-Es una aplicación de consola en Java que implementa la gestión básica de usuarios de UPMArts:
+Esta aplicación de consola implementa la parte de usuarios de UPMArts:
 
 - registro de participantes externos;
 - registro de estudiantes UPM;
 - registro de personal UPM/PDI/PAS;
-- registro de instructores por administrador;
+- registro de instructores por parte de un administrador;
 - inicio de sesión;
-- listado de usuarios desde administración;
+- listado de participantes e instructores desde administración;
 - baja de usuarios;
 - modificación de datos y preferencias artísticas;
 - persistencia en fichero.
 
-Para compilar y probar:
+Para compilar y ejecutar las pruebas:
 
 ```bash
 cd "Entrega 2/Construccion/upmarts-entrega2"
 mvn clean test
 ```
 
-Para generar y ejecutar el JAR:
+Para generar el JAR:
 
 ```bash
 mvn package
+```
+
+Para ejecutar la aplicación:
+
+```bash
 java -jar target/upmarts-1.0-SNAPSHOT.jar
 ```
 
-La explicación detallada del software está en:
+El README específico del proyecto Java está en:
 
 ```text
 Entrega 2/Construccion/upmarts-entrega2/README.md
 ```
 
-## Requisitos para ejecutar el software
+## Requisitos de ejecución
 
 - Java 8 o superior.
 - Maven 3.x.
-- `externals-2.0.jar` situado en la raíz del proyecto Maven.
+- Fichero `externals-2.0.jar` en la raíz del proyecto Maven.
 
-El POM utiliza la dependencia externa con `scope` `system`, siguiendo la configuración indicada para la asignatura.
-
-## Organización del código
-
-Dentro del proyecto Maven:
-
-- `src/main/java/upmarts/modelo`: clases del dominio.
-- `src/main/java/upmarts/controlador`: lógica principal de los casos de uso de usuarios.
-- `src/main/java/upmarts/vista`: interfaz de consola.
-- `src/main/java/upmarts/validacion`: reglas de validación de datos.
-- `src/main/java/upmarts/persistencia`: lectura y escritura de usuarios.
-- `src/main/java/upmarts/integracion`: validación de cuentas UPM mediante la librería externa.
-- `src/test/java/upmarts/controlador`: pruebas unitarias.
+La dependencia externa se referencia desde el `pom.xml` con `scope` `system`, siguiendo la configuración indicada para la asignatura.
 
 ## Estado de la entrega
 
-El proyecto de software compila con Maven, ejecuta las pruebas unitarias y genera el JAR de la aplicación.
-
-Comprobaciones recomendadas antes de revisar la entrega:
+El proyecto Maven compila correctamente, ejecuta las pruebas unitarias y genera el JAR de la aplicación. Antes de revisar la entrega se recomienda ejecutar:
 
 ```bash
 cd "Entrega 2/Construccion/upmarts-entrega2"
 mvn clean test
 mvn package
-java -jar target/upmarts-1.0-SNAPSHOT.jar
 ```
 
-Durante Maven puede aparecer un aviso por el uso de `systemPath` para `externals-2.0.jar`. No impide la compilación ni la ejecución del proyecto.
+Durante Maven puede aparecer un aviso relacionado con `systemPath` y `externals-2.0.jar`. Es un aviso esperado por la forma en la que se incluye la librería externa y no impide compilar ni ejecutar el proyecto.
