@@ -2,10 +2,11 @@ package upmarts.persistencia;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,15 +41,15 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
 
     private void prepararFichero() {
         try {
-            File fichero = new File(rutaFichero);
-            File carpeta = fichero.getParentFile();
+            Path ruta = Paths.get(rutaFichero);
+            Path carpeta = ruta.getParent();
 
-            if (carpeta != null && !carpeta.exists() && !carpeta.mkdirs()) {
-                throw new IllegalStateException("No se pudo crear la carpeta de datos.");
+            if (carpeta != null) {
+                Files.createDirectories(carpeta);
             }
 
-            if (!fichero.exists() && !fichero.createNewFile()) {
-                throw new IllegalStateException("No se pudo crear el fichero de usuarios.");
+            if (!Files.exists(ruta)) {
+                Files.createFile(ruta);
             }
         } catch (IOException e) {
             throw new IllegalStateException("No se pudo preparar el fichero de usuarios.", e);
@@ -57,7 +58,7 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
 
     @Override
     public void guardarUsuarios(List<Usuario> usuarios) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(rutaFichero, false))) {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(rutaFichero), StandardCharsets.UTF_8)) {
             for (Usuario usuario : usuarios) {
                 writer.write(convertirUsuarioALinea(usuario));
                 writer.newLine();
@@ -71,7 +72,7 @@ public class GestorFicheroUsuarios implements IAccesoUsuarios {
     public List<Usuario> leerUsuarios() {
         List<Usuario> usuarios = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(rutaFichero))) {
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(rutaFichero), StandardCharsets.UTF_8)) {
             String linea;
 
             while ((linea = reader.readLine()) != null) {

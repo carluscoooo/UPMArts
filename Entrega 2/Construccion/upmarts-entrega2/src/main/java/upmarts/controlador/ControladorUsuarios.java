@@ -201,8 +201,8 @@ public class ControladorUsuarios implements IControladorUsuarios {
     @Override
     public boolean registrarParticipante(String nombre, String nick, String correo, String password,
                                   String dni, String tarjeta, String datoEspecifico,
-                                  List<PreferenciaArtistica> preferenciasArtisticas){
-    
+                                  List<PreferenciaArtistica> preferenciasArtisticas) {
+
         if (!refrescarUsuarios()) {
             return false;
         }

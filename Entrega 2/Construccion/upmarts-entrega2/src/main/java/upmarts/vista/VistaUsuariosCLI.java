@@ -22,6 +22,10 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
     private final IControladorUsuarios controladorUsuarios;
     private final Scanner scanner;
 
+    public VistaUsuariosCLI(Scanner scanner) {
+        this(new ControladorUsuarios(), scanner);
+    }
+
     public VistaUsuariosCLI(IControladorUsuarios controladorUsuarios, Scanner scanner) {
         this.controladorUsuarios = controladorUsuarios;
         this.scanner = scanner;
@@ -54,7 +58,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         List<PreferenciaArtistica> preferencias = pedirPreferenciasArtisticas();
 
         boolean registrado = controladorUsuarios.registrarParticipante(nombre, nick, correo, password,
-                dni, tarjeta, datoEspecifico, preferencias) ;
+                dni, tarjeta, datoEspecifico, preferencias);
 
         if (registrado) {
             System.out.println("Usuario registrado correctamente.");
@@ -68,7 +72,7 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
     }
 
     @Override
-    public void iniciarSesion() {
+    public Usuario iniciarSesion() {
         System.out.println();
         System.out.println("--- Inicio de sesión ---");
         String correo = pedirTexto("Correo electrónico: ");
@@ -82,127 +86,15 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
             } else {
                 System.out.println("Correo o contraseña incorrectos.");
             }
-            return;
+            return null;
         }
 
         System.out.println("Acceso correcto. Bienvenido/a, " + usuario.getNombreCompleto() + ".");
-        mostrarMenuSegunUsuario(usuario);
+        return usuario;
     }
 
-    private void mostrarMenuSegunUsuario(Usuario usuario) {
-        switch (usuario.getRol()) {
-            case ADMINISTRADOR:
-                mostrarMenuAdministrador((Administrador) usuario);
-                break;
-            case INSTRUCTOR:
-                mostrarMenuInstructor((Instructor) usuario);
-                break;
-            case PARTICIPANTE_EXTERNO:
-            case ESTUDIANTE_UPM:
-            case PERSONAL_UPM:
-                mostrarMenuParticipante((ParticipanteExterno) usuario);
-                break;
-            default:
-                System.out.println("No hay operaciones disponibles para este usuario.");
-                break;
-        }
-    }
-
-    private void mostrarMenuAdministrador(Administrador administrador) {
-        int opcion = -1;
-
-        while (opcion != 0) {
-            System.out.println();
-            System.out.println("--- Menú de administrador ---");
-            System.out.println("1. Dar de alta instructor");
-            System.out.println("2. Dar de baja usuario");
-            System.out.println("3. Listar participantes");
-            System.out.println("4. Listar instructores");
-            System.out.println("0. Cerrar sesión");
-            System.out.print("Seleccione una opción: ");
-
-            opcion = leerEntero();
-
-            if (opcion == 1) {
-                registrarInstructor(administrador);
-            } else if (opcion == 2) {
-                darDeBajaComoAdministrador(administrador);
-            } else if (opcion == 3) {
-                listarParticipantes(administrador);
-            } else if (opcion == 4) {
-                listarInstructores(administrador);
-            } else if (opcion != 0) {
-                System.out.println("Opción no válida.");
-            }
-        }
-    }
-
-    private void mostrarMenuInstructor(Instructor instructor) {
-        int opcion = -1;
-
-        while (opcion != 0) {
-            System.out.println();
-            System.out.println("--- Menú de instructor ---");
-            System.out.println("1. Ver mis datos");
-            System.out.println("2. Darme de baja");
-            System.out.println("0. Cerrar sesión");
-            System.out.print("Seleccione una opción: ");
-
-            opcion = leerEntero();
-
-            if (opcion == 1) {
-                mostrarDatosUsuario(instructor);
-            } else if (opcion == 2) {
-                if (controladorUsuarios.darseDeBaja(instructor)) {
-                    System.out.println("La baja se ha realizado correctamente.");
-                    opcion = 0;
-                } else {
-                    System.out.println("No se ha podido realizar la baja.");
-                }
-            } else if (opcion != 0) {
-                System.out.println("Opción no válida.");
-            }
-        }
-    }
-
-    private void mostrarMenuParticipante(ParticipanteExterno participante) {
-        int opcion = -1;
-
-        while (opcion != 0) {
-            System.out.println();
-            System.out.println("--- Menú de participante ---");
-            System.out.println("1. Ver mis datos");
-            System.out.println("2. Ver preferencias artísticas");
-            System.out.println("3. Modificar datos");
-            System.out.println("4. Modificar preferencias artísticas");
-            System.out.println("5. Darme de baja");
-            System.out.println("0. Cerrar sesión");
-            System.out.print("Seleccione una opción: ");
-
-            opcion = leerEntero();
-
-            if (opcion == 1) {
-                mostrarDatosUsuario(participante);
-            } else if (opcion == 2) {
-                mostrarPreferencias(participante);
-            } else if (opcion == 3) {
-                modificarDatosParticipante(participante);
-            } else if (opcion == 4) {
-                modificarPreferencias(participante);
-            } else if (opcion == 5) {
-                if (controladorUsuarios.darseDeBaja(participante)) {
-                    System.out.println("La baja se ha realizado correctamente.");
-                    opcion = 0;
-                } else {
-                    System.out.println("No se ha podido realizar la baja.");
-                }
-            } else if (opcion != 0) {
-                System.out.println("Opción no válida.");
-            }
-        }
-    }
-
-    private void registrarInstructor(Administrador administrador) {
+    @Override
+    public void registrarInstructor(Administrador administrador) {
         System.out.println();
         System.out.println("--- Alta de instructor ---");
         String nombre = pedirNombre();
@@ -226,7 +118,8 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void darDeBajaComoAdministrador(Administrador administrador) {
+    @Override
+    public void darDeBajaComoAdministrador(Administrador administrador) {
         System.out.println();
         System.out.println("--- Baja de usuario ---");
         String correo = pedirTexto("Correo del usuario que se desea dar de baja: ");
@@ -240,7 +133,8 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void listarParticipantes(Administrador administrador) {
+    @Override
+    public void listarParticipantes(Administrador administrador) {
         List<ParticipanteExterno> participantes = controladorUsuarios.listarParticipantes(administrador);
 
         System.out.println();
@@ -265,7 +159,8 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void listarInstructores(Administrador administrador) {
+    @Override
+    public void listarInstructores(Administrador administrador) {
         List<Instructor> instructores = controladorUsuarios.listarInstructores(administrador);
 
         System.out.println();
@@ -288,7 +183,8 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void mostrarDatosUsuario(Usuario usuario) {
+    @Override
+    public void mostrarDatosUsuario(Usuario usuario) {
         System.out.println();
         System.out.println("--- Mis datos ---");
         System.out.println("Tipo: " + obtenerRolSistema(usuario));
@@ -302,7 +198,8 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void mostrarPreferencias(ParticipanteExterno participante) {
+    @Override
+    public void mostrarPreferencias(ParticipanteExterno participante) {
         System.out.println();
         System.out.println("--- Preferencias artísticas ---");
         List<PreferenciaArtistica> preferencias = participante.getPreferenciasArtisticas();
@@ -319,7 +216,8 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void modificarPreferencias(ParticipanteExterno participante) {
+    @Override
+    public void modificarPreferencias(ParticipanteExterno participante) {
         List<PreferenciaArtistica> preferencias = pedirPreferenciasArtisticas();
 
         if (controladorUsuarios.actualizarPreferencias(participante, preferencias)) {
@@ -329,7 +227,8 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
-    private void modificarDatosParticipante(ParticipanteExterno participante) {
+    @Override
+    public void modificarDatosParticipante(ParticipanteExterno participante) {
         int opcion = -1;
 
         while (opcion != 0) {
@@ -431,6 +330,17 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         }
     }
 
+    @Override
+    public boolean darseDeBaja(Usuario usuario) {
+        if (controladorUsuarios.darseDeBaja(usuario)) {
+            System.out.println("La baja se ha realizado correctamente.");
+            return true;
+        }
+
+        System.out.println("No se ha podido realizar la baja.");
+        return false;
+    }
+
     private String obtenerRolSistema(Usuario usuario) {
         switch (usuario.getRol()) {
             case ADMINISTRADOR:
@@ -452,18 +362,18 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
         switch (usuario.getRol()) {
             case ADMINISTRADOR:
                 Administrador administrador = (Administrador) usuario;
-                return "   Telefono: " + administrador.getTelefonoAdministrador();
+                return "   Teléfono: " + administrador.getTelefonoAdministrador();
             case INSTRUCTOR:
                 Instructor instructor = (Instructor) usuario;
                 return "   DNI: " + instructor.getDNI() + "\n   IBAN: " + instructor.getIBAN();
             case ESTUDIANTE_UPM:
                 EstudianteUPM estudiante = (EstudianteUPM) usuario;
                 return obtenerInformacionParticipante(estudiante)
-                        + "\n   Matricula: " + estudiante.getNumeroMatricula();
+                        + "\n   Matrícula: " + estudiante.getNumeroMatricula();
             case PERSONAL_UPM:
                 PersonalUPM personal = (PersonalUPM) usuario;
                 return obtenerInformacionParticipante(personal)
-                        + "\n   Antiguedad: " + personal.getAntiguedad() + " anios";
+                        + "\n   Antigüedad: " + personal.getAntiguedad() + " años";
             case PARTICIPANTE_EXTERNO:
                 return obtenerInformacionParticipante((ParticipanteExterno) usuario);
             default:
@@ -474,9 +384,9 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
     private String obtenerEtiquetaDatoEspecifico(ParticipanteExterno participante) {
         switch (participante.getRol()) {
             case ESTUDIANTE_UPM:
-                return "Numero de matricula";
+                return "Número de matrícula";
             case PERSONAL_UPM:
-                return "Antiguedad en anios";
+                return "Antigüedad en años";
             default:
                 return "";
         }
@@ -517,18 +427,12 @@ public class VistaUsuariosCLI implements IVistaUsuariosCLI {
     }
 
     private void mostrarTipoDetectado(String tipoRegistro) {
-        if (null == tipoRegistro) {
+        if (ControladorUsuarios.TIPO_ALUMNO_UPM.equals(tipoRegistro)) {
+            System.out.println("Tipo detectado: estudiante UPM.");
+        } else if (ControladorUsuarios.TIPO_PERSONAL_UPM.equals(tipoRegistro)) {
+            System.out.println("Tipo detectado: personal UPM.");
+        } else {
             System.out.println("Tipo detectado: participante externo.");
-        } else switch (tipoRegistro) {
-            case ControladorUsuarios.TIPO_ALUMNO_UPM:
-                System.out.println("Tipo detectado: estudiante UPM.");
-                break;
-            case ControladorUsuarios.TIPO_PERSONAL_UPM:
-                System.out.println("Tipo detectado: personal UPM.");
-                break;
-            default:
-                System.out.println("Tipo detectado: participante externo.");
-                break;
         }
     }
 
