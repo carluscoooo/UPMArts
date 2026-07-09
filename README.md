@@ -1,163 +1,99 @@
-# UPMArts
+# UPMArts — Sistema de gestión de un centro de creación cultural
 
-Repositorio del proyecto UPMArts, realizado por el grupo **CITIM21-3-UPMArts** para la asignatura de Fundamentos de la Ingeniería del Software.
+![Java](https://img.shields.io/badge/Java-8%2B-ED8B00?logo=openjdk&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-3.x-C71A36?logo=apachemaven&logoColor=white)
+![JUnit](https://img.shields.io/badge/JUnit-Tests-25A162?logo=junit5&logoColor=white)
+![UML](https://img.shields.io/badge/UML-StarUML-blue)
 
-UPMArts plantea un sistema de apoyo a la gestión del Centro de Creación Cultural de la Universidad Politécnica de Madrid. El proyecto contempla el registro y acceso de usuarios, la organización de actividades culturales, la gestión de espacios y recursos, y la participación de usuarios externos y miembros de la comunidad universitaria.
+Aplicación de consola en **Java** que implementa la gestión de usuarios del Centro de Creación Cultural de la UPM: registro e inicio de sesión con distintos roles, preferencias artísticas y persistencia en fichero con contraseñas cifradas.
 
-## Integrantes
+El proyecto cubre el **ciclo completo de desarrollo de software**: análisis y modelado UML, diseño, implementación, pruebas unitarias y documentación (todo disponible en [`docs/`](docs/)).
 
-- FILALI BELHADJ CHAQROUNE, YASSIR
-- GOMEZ MORENO, CARLOS
-- MARGELINO GONZALES, ERIKA
-- PANIS MARAMBA, TRISHALYN
-- ZHANG, JIONGHAO
+## Características
 
-## Arquitectura y tecnologías
+- Alta de participantes externos, estudiantes UPM, personal UPM/PDI/PAS e instructores (estos últimos desde el menú de administrador).
+- Inicio de sesión con distinción entre correo no registrado y contraseña incorrecta.
+- Listado de participantes e instructores desde administración, baja de usuarios y modificación de datos.
+- Consulta y modificación de preferencias artísticas (música, pintura, teatro, con nivel de 0 a 10).
+- Validación de cuentas UPM mediante una librería externa de validación de credenciales, integrada a través de un adaptador.
+- Persistencia en fichero con contraseñas hasheadas (SHA-256): `TIPO;nick;nombre;correo;passwordCifrada;...`
 
-La aplicación Java sigue una **arquitectura en capas** con separación estricta de responsabilidades e **interfaces entre capas** para facilitar las pruebas y el bajo acoplamiento:
+## Arquitectura
+
+Arquitectura en capas con separación estricta de responsabilidades e **interfaces entre capas** para facilitar las pruebas y el bajo acoplamiento:
 
 ```
 src/main/java/upmarts/
-├── vista/          → Interfaz de consola (VistaPrincipalCLI, VistaUsuariosCLI)
-├── controlador/    → Lógica de aplicación (ControladorUsuarios + interfaz)
-├── modelo/         → Dominio: jerarquía de usuarios (estudiante, personal, instructor,
-│                     administrador, participante externo), roles y preferencias artísticas
-├── validacion/     → Validación de datos de entrada (DNI, correos, contraseñas)
-├── persistencia/   → Persistencia en fichero (GestorFicheroUsuarios + interfaz IAccesoUsuarios)
-└── integracion/    → Validación de cuentas UPM vía adaptador LDAP (patrón Adapter)
+├── vista/          → Menús de consola y lectura de datos (VistaPrincipalCLI, VistaUsuariosCLI)
+├── controlador/    → Coordinación de las operaciones y reglas de negocio (ControladorUsuarios)
+├── modelo/         → Dominio: jerarquía de usuarios, roles y preferencias artísticas
+├── validacion/     → Validación de formato de los datos (DNI, correos, contraseñas, IBAN...)
+├── persistencia/   → Lectura y escritura de usuarios en fichero (GestorFicheroUsuarios)
+└── integracion/    → Validación de cuentas UPM (AdaptadorLDAP, patrón Adapter)
 ```
 
-Aspectos destacables:
+Jerarquía del modelo de usuarios (herencia y polimorfismo):
 
-- **Modelado previo con UML** (StarUML): casos de uso, diagramas de clases de análisis y diseño, y descripciones extendidas de casos de uso.
-- **Herencia y polimorfismo** en el modelo de usuarios: clase base `Usuario` con especializaciones por tipo de miembro de la comunidad universitaria.
-- **Patrón Adapter** (`AdaptadorLDAP`) para integrar la librería externa de validación de cuentas UPM sin acoplarla al dominio.
-- **Pruebas unitarias con JUnit** de caja blanca y caja negra sobre el controlador de usuarios, documentadas en la carpeta `Pruebas`.
-- **Maven** como sistema de construcción; **Redmine** para la planificación y seguimiento del trabajo en equipo.
-
-Tecnologías: Java, Maven, JUnit, StarUML, Git, Redmine.
-
-## Seguimiento del proyecto
-
-La planificación, las tareas y la información de seguimiento del trabajo se encuentran en Redmine:
-
-[Proyecto CITIM21-3-UPMArts en Redmine](https://fis.etsisi.upm.es/projects/citim21-3-upmarts)
-
-## Contenido del repositorio
-
-El repositorio está organizado por entregas:
-
-```text
-citim21-3-upmarts/
-├── Entrega 1/
-│   ├── Modelado/
-│   └── Prototipo/
-└── Entrega 2/
-    ├── Construccion/
-    ├── Diseño/
-    └── Pruebas/
+```
+Usuario
+├── Administrador
+└── UsuarioConDNI
+    ├── Instructor
+    └── ParticipanteExterno
+        └── ParticipanteUPM
+            ├── EstudianteUPM
+            └── PersonalUPM
 ```
 
-## Entrega 1
+Decisiones de diseño destacables:
 
-La primera entrega recoge el análisis inicial del sistema.
+- **Modelado previo con UML** (StarUML): casos de uso, diagramas de clases de análisis y diseño, y descripciones extendidas de casos de uso (`docs/modelado` y `docs/diseno`).
+- **Patrón Adapter** (`AdaptadorLDAP`) para integrar la librería externa de validación sin acoplarla al dominio.
+- La vista se limita a pedir y mostrar datos; las reglas de negocio se concentran en el controlador y las de formato en `ValidadorDatosUsuario`.
 
-Incluye:
+## Pruebas
 
-- prototipo visual de UPMArts;
-- proyecto de modelado en StarUML;
-- diagramas de casos de uso;
-- diagrama de clases de análisis;
-- descripciones extendidas de casos de uso;
-- PDF recopilatorio con los diagramas principales.
-
-Archivos principales:
-
-- `Entrega 1/Prototipo/UPM-Arts.pdf`
-- `Entrega 1/Modelado/ StarUML/CITIM21-3-UPMArts.uml`
-- `Entrega 1/Modelado/Diagramas/`
-- `Entrega 1/Modelado/PDF Recopilatorio/UPM_Arts_Modelado_Completo.pdf`
-
-## Entrega 2
-
-La segunda entrega contiene el diseño actualizado, la implementación y la documentación de pruebas.
-
-Incluye:
-
-- modelo de diseño en StarUML;
-- proyecto Java ejecutable con Maven;
-- pruebas unitarias del controlador de usuarios;
-- documento de pruebas unitarias;
-- documento de pruebas de validación.
-
-Archivos principales:
-
-- `Entrega 2/Diseño/CITIM21-3-UPMArts.uml`
-- `Entrega 2/Construccion/upmarts-entrega2/`
-- `Entrega 2/Pruebas/Pruebas Unitarias.docx`
-- `Entrega 2/Pruebas/Pruebas de Validación.docx`
-
-## Proyecto Java
-
-El código ejecutable se encuentra en:
-
-```text
-Entrega 2/Construccion/upmarts-entrega2
-```
-
-Esta aplicación de consola implementa la parte de usuarios de UPMArts:
-
-- registro de participantes externos;
-- registro de estudiantes UPM;
-- registro de personal UPM/PDI/PAS;
-- registro de instructores por parte de un administrador;
-- inicio de sesión;
-- listado de participantes e instructores desde administración;
-- baja de usuarios;
-- modificación de datos y preferencias artísticas;
-- persistencia en fichero.
-
-Para compilar y ejecutar las pruebas:
+Pruebas unitarias con **JUnit** sobre el controlador de usuarios, con enfoques de **caja negra** y **caja blanca**: altas válidas e inválidas, duplicados, inicio de sesión, validación UPM y errores de persistencia simulados.
 
 ```bash
-cd "Entrega 2/Construccion/upmarts-entrega2"
+mvn test
+```
+
+La documentación de pruebas está en [`docs/pruebas`](docs/pruebas).
+
+## Requisitos y ejecución
+
+Requiere **Java 8+** y **Maven 3.x**. La librería `externals-2.0.jar` está incluida en la raíz del repositorio (se referencia desde el `pom.xml` con scope `system`; Maven puede mostrar un aviso por ello, que no impide compilar ni ejecutar).
+
+```bash
+# Compilar y ejecutar las pruebas
 mvn clean test
-```
 
-Para generar el JAR:
-
-```bash
+# Empaquetar y lanzar la aplicación
 mvn package
-```
-
-Para ejecutar la aplicación:
-
-```bash
 java -jar target/upmarts-1.0-SNAPSHOT.jar
 ```
 
-El README específico del proyecto Java está en:
+Al iniciar por primera vez se crean dos usuarios por defecto:
 
-```text
-Entrega 2/Construccion/upmarts-entrega2/README.md
+- Administrador — correo `admin@upm.es`, contraseña `Admin123456A`
+- Instructor — correo `instructor@upm.es`, contraseña `Instructor123A`
+
+Los datos se guardan en `data/usuarios.txt` (se genera en la primera ejecución).
+
+## Estructura del repositorio
+
+```
+├── src/            → Código fuente y pruebas (proyecto Maven)
+├── docs/
+│   ├── modelado/   → Casos de uso, diagrama de clases de análisis, proyecto StarUML
+│   ├── prototipo/  → Prototipo visual de la aplicación
+│   ├── diseno/     → Diagramas de diseño, componentes y despliegue
+│   └── pruebas/    → Documentos de pruebas unitarias y de validación
+├── pom.xml
+└── externals-2.0.jar
 ```
 
-## Requisitos de ejecución
+## Autoría
 
-- Java 8 o superior.
-- Maven 3.x.
-- Fichero `externals-2.0.jar` en la raíz del proyecto Maven.
-
-La dependencia externa se referencia desde el `pom.xml` con `scope` `system`, siguiendo la configuración indicada para la asignatura.
-
-## Estado de la entrega
-
-El proyecto Maven compila correctamente, ejecuta las pruebas unitarias y genera el JAR de la aplicación. Antes de revisar la entrega se recomienda ejecutar:
-
-```bash
-cd "Entrega 2/Construccion/upmarts-entrega2"
-mvn clean test
-mvn package
-```
-
-Durante Maven puede aparecer un aviso relacionado con `systemPath` y `externals-2.0.jar`. Es un aviso esperado por la forma en la que se incluye la librería externa y no impide compilar ni ejecutar el proyecto.
+Desarrollado por **Carlos Gómez Moreno** ([@carluscoooo](https://github.com/carluscoooo)) en colaboración con un equipo de 5 personas.
