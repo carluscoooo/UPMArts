@@ -12,6 +12,31 @@ UPMArts plantea un sistema de apoyo a la gestión del Centro de Creación Cultur
 - PANIS MARAMBA, TRISHALYN
 - ZHANG, JIONGHAO
 
+## Arquitectura y tecnologías
+
+La aplicación Java sigue una **arquitectura en capas** con separación estricta de responsabilidades e **interfaces entre capas** para facilitar las pruebas y el bajo acoplamiento:
+
+```
+src/main/java/upmarts/
+├── vista/          → Interfaz de consola (VistaPrincipalCLI, VistaUsuariosCLI)
+├── controlador/    → Lógica de aplicación (ControladorUsuarios + interfaz)
+├── modelo/         → Dominio: jerarquía de usuarios (estudiante, personal, instructor,
+│                     administrador, participante externo), roles y preferencias artísticas
+├── validacion/     → Validación de datos de entrada (DNI, correos, contraseñas)
+├── persistencia/   → Persistencia en fichero (GestorFicheroUsuarios + interfaz IAccesoUsuarios)
+└── integracion/    → Validación de cuentas UPM vía adaptador LDAP (patrón Adapter)
+```
+
+Aspectos destacables:
+
+- **Modelado previo con UML** (StarUML): casos de uso, diagramas de clases de análisis y diseño, y descripciones extendidas de casos de uso.
+- **Herencia y polimorfismo** en el modelo de usuarios: clase base `Usuario` con especializaciones por tipo de miembro de la comunidad universitaria.
+- **Patrón Adapter** (`AdaptadorLDAP`) para integrar la librería externa de validación de cuentas UPM sin acoplarla al dominio.
+- **Pruebas unitarias con JUnit** de caja blanca y caja negra sobre el controlador de usuarios, documentadas en la carpeta `Pruebas`.
+- **Maven** como sistema de construcción; **Redmine** para la planificación y seguimiento del trabajo en equipo.
+
+Tecnologías: Java, Maven, JUnit, StarUML, Git, Redmine.
+
 ## Seguimiento del proyecto
 
 La planificación, las tareas y la información de seguimiento del trabajo se encuentran en Redmine:
